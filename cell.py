@@ -2,6 +2,7 @@ import pygame
 import random
 import math
 
+
 class Cell:
     def __init__(self, x, y, color=(255, 255, 255), radius=5, infected=False, speed=2):
         self.x = x

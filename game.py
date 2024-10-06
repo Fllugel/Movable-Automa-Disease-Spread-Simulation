@@ -1,6 +1,7 @@
 import pygame
 from grid import Grid
 
+
 class Game:
     def __init__(self, width, height, num_cells):
         self.width = width

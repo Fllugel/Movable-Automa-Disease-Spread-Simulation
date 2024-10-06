@@ -3,6 +3,7 @@ from cell import Cell
 import random
 import math
 
+
 class Grid:
     def __init__(self, width, height, num_cells, infected_count=5, cell_speed=2, min_distance=20):
         self.width = width

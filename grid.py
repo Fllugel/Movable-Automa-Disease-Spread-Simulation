@@ -15,12 +15,12 @@ class Grid:
         self.cell_speed = cell_speed
         self.num_cells = num_cells
 
-        for _ in range(num_cells):
-            self.add_cell(cell_speed)
-
-        # Randomly infect a subset of cells
-        for i in random.sample(range(num_cells), infected_count):
-            self.cells[i].infected = True
+        # for _ in range(num_cells):
+        #     self.add_cell(cell_speed)
+        #
+        # # Randomly infect a subset of cells
+        # for i in random.sample(range(num_cells), infected_count):
+        #     self.cells[i].infected = True
 
     def create_cells(self, num_cells, infected_count, cell_speed):
         self.cells.clear()

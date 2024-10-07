@@ -7,12 +7,12 @@ class Panel:
         self.height = height
         self.grid = grid
 
-        self.cell_count_input_box = pygame.Rect(width // 2 - 100, 150, 200, 40)
-        self.infected_count_input_box = pygame.Rect(width // 2 - 100, 220, 200, 40)
-        self.cell_speed_input_box = pygame.Rect(width // 2 - 100, 290, 200, 40)
+        self.cell_count_input_box = pygame.Rect(width // 2 - 75, 150, 150, 30)
+        self.infected_count_input_box = pygame.Rect(width // 2 - 75, 150, 150, 30)
+        self.cell_speed_input_box = pygame.Rect(width // 2 - 75, 290, 150, 30)
 
-        self.color_inactive = pygame.Color('lightskyblue3')
-        self.color_active = pygame.Color('dodgerblue2')
+        self.color_inactive = pygame.Color(255, 255, 255)
+        self.color_active = pygame.Color(200, 200, 200)
 
         self.cell_count_color = self.color_inactive
         self.infected_count_color = self.color_inactive
@@ -25,9 +25,9 @@ class Panel:
         self.cell_count_text = str(grid.num_cells)
         self.infected_count_text = str(grid.infected_count)
         self.cell_speed_text = str(grid.cell_speed)
-        self.font = pygame.font.Font(None, 32)
+        self.font = pygame.font.Font(None, 20)
 
-        self.button = pygame.Rect(width // 2 - 100, 360, 200, 40)
+        self.button = pygame.Rect(width // 2 - 50, 360, 100, 40)
         self.button_color = (0, 128, 255)
         self.button_hover_color = (0, 100, 200)
         self.button_text = 'Start'
@@ -65,10 +65,6 @@ class Panel:
                 except ValueError:
                     print("Invalid input. Please enter a number!")
 
-                self.cell_count_text = ''
-                self.infected_count_text = ''
-                self.cell_speed_text = ''
-
         if event.type == pygame.KEYDOWN:
             if self.active_cell_count:
                 if event.key == pygame.K_BACKSPACE:
@@ -90,9 +86,9 @@ class Panel:
         pygame.draw.rect(screen, (50, 50, 50), (0, 0, self.width, self.height))
 
         # Title
-        title_font = pygame.font.Font(None, 40)
+        title_font = pygame.font.Font(None, 30)
         title_surface = title_font.render("Parameters panel", True, (255, 255, 255))
-        screen.blit(title_surface, (self.width // 2 - title_surface.get_width() // 2, 50))
+        screen.blit(title_surface, (self.width // 2 - title_surface.get_width() // 2, 20))
 
         # List of parameters for input boxes
         input_labels = ["Cell Count", "Infected Count", "Cell Speed"]
@@ -102,8 +98,8 @@ class Panel:
             (self.cell_speed_input_box, self.cell_speed_color, self.cell_speed_text)
         ]
 
-        spacing = 20
-        current_y = 110
+        spacing = 10
+        current_y = 70
 
         # Drawing text and boxes, then spacing them correctly
         for (box, color, text), label in zip(input_boxes, input_labels):
@@ -116,7 +112,9 @@ class Panel:
             # Input box
             box.y = current_y
             txt_surface = self.font.render(text, True, color)
-            screen.blit(txt_surface, (box.x + 5, box.y + 5))
+            text_x = box.x + 5
+            text_y = box.y + (box.height - txt_surface.get_height()) // 2
+            screen.blit(txt_surface, (text_x, text_y))
             pygame.draw.rect(screen, color, box, 2)
 
             current_y += box.height + spacing

@@ -6,7 +6,7 @@ from panel import Panel
 # Game settings
 WIDTH = 800  # Width of the window
 HEIGHT = 600  # Height of the window
-PANEL_WIDTH = 300
+PANEL_WIDTH = 200
 NUM_CELLS = 100  # Total number of cells
 INFECTED_COUNT = 10  # Number of initially infected cells
 CELL_SPEED = 1  # Speed of cell movement

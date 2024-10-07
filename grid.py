@@ -11,10 +11,23 @@ class Grid:
         self.cells = []
         self.min_distance = min_distance
 
+        self.infected_count = infected_count
+        self.cell_speed = cell_speed
+        self.num_cells = num_cells
+
         for _ in range(num_cells):
             self.add_cell(cell_speed)
 
         # Randomly infect a subset of cells
+        for i in random.sample(range(num_cells), infected_count):
+            self.cells[i].infected = True
+
+    def create_cells(self, num_cells, infected_count, cell_speed):
+        self.cells.clear()
+
+        for _ in range(num_cells):
+            self.add_cell(cell_speed)
+
         for i in random.sample(range(num_cells), infected_count):
             self.cells[i].infected = True
 
@@ -38,6 +51,6 @@ class Grid:
             for other in self.cells[i + 1:]:
                 cell.handle_collision(other)
 
-    def draw(self, screen):
+    def draw(self, screen, offset_x=0):
         for cell in self.cells:
-            cell.draw(screen)
+            cell.draw(screen, offset_x)

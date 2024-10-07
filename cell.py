@@ -24,10 +24,10 @@ class Cell:
         if self.y < 0 or self.y > height:
             self.direction = (self.direction[0], -self.direction[1])  # Reverse vertical direction
 
-    def draw(self, screen):
+    def draw(self, screen, offset_x=0):
         # Change color based on infection status
         color = (255, 0, 0) if self.infected else self.color
-        pygame.draw.circle(screen, color, (int(self.x), int(self.y)), self.radius)
+        pygame.draw.circle(screen, color, (self.x + offset_x, self.y), self.radius)
 
     def check_collision(self, other):
         distance = math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)

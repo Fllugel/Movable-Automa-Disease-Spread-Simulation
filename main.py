@@ -10,6 +10,7 @@ PANEL_WIDTH = 200
 NUM_CELLS = 100  # Total number of cells
 INFECTED_COUNT = 10  # Number of initially infected cells
 CELL_SPEED = 1  # Speed of cell movement
+FPS = 60 # FPS CLOCK
 
 
 def main():
@@ -38,7 +39,7 @@ def main():
         panel.draw(screen)
         grid.draw(screen, PANEL_WIDTH)
         pygame.display.flip()
-        clock.tick(60)
+        clock.tick(FPS)
 
 
 if __name__ == "__main__":

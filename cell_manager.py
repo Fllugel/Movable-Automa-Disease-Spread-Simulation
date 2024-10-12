@@ -1,5 +1,6 @@
 import random
 from cell import Cell
+from cell_state import CellState  # Add this import
 
 class CellManager:
     def __init__(self, width, height, grid_size, cell_size, infection_display_duration):
@@ -19,7 +20,7 @@ class CellManager:
             self.add_cell(cell_speed)
 
         for i in random.sample(range(num_cells), infected_count):
-            self.cells[i].set_infected()
+            self.cells[i].state = CellState.INFECTED
 
     def add_cell(self, speed):
         while True:

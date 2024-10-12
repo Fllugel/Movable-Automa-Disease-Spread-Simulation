@@ -13,7 +13,7 @@ CELL_SIZE = 6  # Size of each cell
 
 # Panel basic values
 NUM_CELLS = 500  # Total number of cells
-INFECTED_COUNT = 10  # Number of initially infected cells
+INFECTED_COUNT = 1  # Number of initially infected cells
 CELL_SPEED = 0.5  # Speed of cell movement (allowing lower speeds)
 INFECTION_PROBABILITY = 0.2  # Basic infection probability
 INFECTION_RADIUS = 11  # Basic infection radius

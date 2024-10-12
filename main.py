@@ -12,11 +12,11 @@ INFECTION_DISPLAY_DURATION = 0.5  # Duration to show infection radius
 CELL_SIZE = 6  # Size of each cell
 
 # Panel basic values
-NUM_CELLS = 100  # Total number of cells
+NUM_CELLS = 500  # Total number of cells
 INFECTED_COUNT = 10  # Number of initially infected cells
 CELL_SPEED = 0.5  # Speed of cell movement (allowing lower speeds)
 INFECTION_PROBABILITY = 0.2  # Basic infection probability
-INFECTION_RADIUS = 10  # Basic infection radius
+INFECTION_RADIUS = 11  # Basic infection radius
 
 def main():
     pygame.init()

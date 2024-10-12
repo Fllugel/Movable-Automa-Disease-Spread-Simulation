@@ -1,4 +1,3 @@
-import pygame
 from cell import Cell
 import random
 import math
@@ -33,7 +32,7 @@ class Grid:
             self.add_cell(cell_speed)
 
         for i in random.sample(range(num_cells), infected_count):
-            self.cells[i].infected = True
+            self.cells[i].set_infected()
 
     def add_cell(self, speed):
         while True:

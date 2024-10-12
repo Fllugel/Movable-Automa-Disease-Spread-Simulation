@@ -1,17 +1,20 @@
+# cell.py
 import pygame
 import random
 import math
 import time
+from cell_state import CellState
 
 class Cell:
     def __init__(self, x, y, speed, infection_display_duration, size=5):
+        self.infection_radius = None
         self.x = x
         self.y = y
         self.speed = speed
         self.infection_display_duration = infection_display_duration
         self.size = size
-        self.radius = size // 2  # Assuming radius is half the size
-        self.infected = False
+        self.radius = size // 2  
+        self.state = CellState.SUSCEPTIBLE
         angle = random.uniform(0, 2 * math.pi)
         self.direction = (math.cos(angle), math.sin(angle))
         self.last_infection_check = 0  # Time of the last infection check
@@ -35,7 +38,7 @@ class Cell:
             self.y = max(0, min(self.y, height))
 
     def draw(self, screen, offset_x=0):
-        color = (255, 0, 0) if self.infected else (255, 255, 255)
+        color = (255, 0, 0) if self.state == CellState.INFECTED else (255, 255, 255)
         pygame.draw.circle(screen, color, (self.x + offset_x, self.y), self.radius)
 
         # Draw infection radius if the check was performed recently
@@ -50,7 +53,7 @@ class Cell:
                         (self.x + offset_x - self.infection_radius, self.y - self.infection_radius))
 
     def handle_infection(self, other, infection_distance, infection_probability):
-        if not self.infected or other.infected:
+        if self.state != CellState.INFECTED or other.state == CellState.INFECTED:
             return
 
         distance = math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
@@ -59,4 +62,13 @@ class Cell:
             self.infection_radius = infection_distance
             self.infection_alpha = 255  # Reset the alpha value
             if random.random() < infection_probability:
-                other.infected = True
+                other.set_infected()
+
+    def is_infected(self):
+        return self.state == CellState.INFECTED
+
+    def set_infected(self):
+        self.state = CellState.INFECTED
+
+    def set_susceptible(self):
+        self.state = CellState.SUSCEPTIBLE

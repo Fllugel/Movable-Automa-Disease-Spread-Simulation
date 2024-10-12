@@ -4,16 +4,17 @@ import random
 import math
 
 class Grid:
-    def __init__(self, width, height, num_cells, infected_count=5, cell_speed=2, min_distance=20, infection_probability=0.1):
+    def __init__(self, width, height, num_cells, infected_count=5, cell_speed=2, min_distance=20, infection_probability=0.1, infection_display_duration=1, infection_distance=20):
         self.width = width
         self.height = height
         self.cells = []
         self.min_distance = min_distance
-
         self.infected_count = infected_count
         self.cell_speed = cell_speed
         self.num_cells = num_cells
         self.infection_probability = infection_probability
+        self.infection_display_duration = infection_display_duration
+        self.infection_distance = infection_distance
 
     def create_cells(self, num_cells, infected_count, cell_speed):
         self.cells.clear()
@@ -28,7 +29,7 @@ class Grid:
         while True:
             new_x = random.randint(0, self.width)
             new_y = random.randint(0, self.height)
-            new_cell = Cell(new_x, new_y, speed=speed)
+            new_cell = Cell(new_x, new_y, speed=speed, infection_display_duration=self.infection_display_duration)
 
             if all(self.is_far_enough(new_cell, other) for other in self.cells):
                 self.cells.append(new_cell)
@@ -42,7 +43,7 @@ class Grid:
         for i, cell in enumerate(self.cells):
             cell.move(self.width, self.height)
             for other in self.cells[i + 1:]:
-                cell.handle_infection(other, infection_distance=20, infection_probability=self.infection_probability)
+                cell.handle_infection(other, infection_distance=self.infection_distance, infection_probability=self.infection_probability)
 
     def draw(self, screen, offset_x=0):
         for cell in self.cells:

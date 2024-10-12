@@ -10,6 +10,7 @@ class Panel:
         self.infected_count_input_box = pygame.Rect(width // 2 - 75, 110, 150, 30)
         self.cell_speed_input_box = pygame.Rect(width // 2 - 75, 150, 150, 30)
         self.infection_probability_input_box = pygame.Rect(width // 2 - 75, 190, 150, 30)
+        self.infection_radius_input_box = pygame.Rect(width // 2 - 75, 230, 150, 30)
 
         self.color_inactive = pygame.Color(255, 255, 255)
         self.color_active = pygame.Color(200, 200, 200)
@@ -18,16 +19,19 @@ class Panel:
         self.infected_count_color = self.color_inactive
         self.cell_speed_color = self.color_inactive
         self.infection_probability_color = self.color_inactive
+        self.infection_radius_color = self.color_inactive
 
         self.active_cell_count = False
         self.active_infected_count = False
         self.active_cell_speed = False
         self.active_infection_probability = False
+        self.active_infection_radius = False
 
         self.cell_count_text = str(grid.num_cells)
         self.infected_count_text = str(grid.infected_count)
         self.cell_speed_text = str(grid.cell_speed)
         self.infection_probability_text = "0.1"
+        self.infection_radius_text = str(grid.infection_distance)
 
         pygame.font.init()
         self.font = pygame.font.Font(None, 20)
@@ -44,31 +48,43 @@ class Panel:
                 self.active_infected_count = False
                 self.active_cell_speed = False
                 self.active_infection_probability = False
+                self.active_infection_radius = False
             elif self.infected_count_input_box.collidepoint(event.pos):
                 self.active_infected_count = not self.active_infected_count
                 self.active_cell_count = False
                 self.active_cell_speed = False
                 self.active_infection_probability = False
+                self.active_infection_radius = False
             elif self.cell_speed_input_box.collidepoint(event.pos):
                 self.active_cell_speed = not self.active_cell_speed
                 self.active_cell_count = False
                 self.active_infected_count = False
                 self.active_infection_probability = False
+                self.active_infection_radius = False
             elif self.infection_probability_input_box.collidepoint(event.pos):
                 self.active_infection_probability = not self.active_infection_probability
                 self.active_cell_count = False
                 self.active_infected_count = False
                 self.active_cell_speed = False
+                self.active_infection_radius = False
+            elif self.infection_radius_input_box.collidepoint(event.pos):
+                self.active_infection_radius = not self.active_infection_radius
+                self.active_cell_count = False
+                self.active_infected_count = False
+                self.active_cell_speed = False
+                self.active_infection_probability = False
             else:
                 self.active_cell_count = False
                 self.active_infected_count = False
                 self.active_cell_speed = False
                 self.active_infection_probability = False
+                self.active_infection_radius = False
 
             self.cell_count_color = self.color_active if self.active_cell_count else self.color_inactive
             self.infected_count_color = self.color_active if self.active_infected_count else self.color_inactive
             self.cell_speed_color = self.color_active if self.active_cell_speed else self.color_inactive
             self.infection_probability_color = self.color_active if self.active_infection_probability else self.color_inactive
+            self.infection_radius_color = self.color_active if self.active_infection_radius else self.color_inactive
 
             if self.button.collidepoint(event.pos):
                 try:
@@ -76,9 +92,11 @@ class Panel:
                     infected_count = int(self.infected_count_text) if self.infected_count_text.isdigit() else self.grid.infected_count
                     cell_speed = int(self.cell_speed_text) if self.cell_speed_text.isdigit() else self.grid.cell_speed
                     infection_probability = float(self.infection_probability_text) if self.infection_probability_text.replace('.', '', 1).isdigit() else 0.1
+                    infection_radius = int(self.infection_radius_text) if self.infection_radius_text.isdigit() else self.grid.infection_distance
 
                     self.grid.create_cells(num_cells, infected_count=infected_count, cell_speed=cell_speed)
                     self.grid.infection_probability = infection_probability
+                    self.grid.infection_distance = infection_radius
                 except ValueError:
                     print("Invalid input. Please enter a number!")
 
@@ -103,6 +121,11 @@ class Panel:
                     self.infection_probability_text = self.infection_probability_text[:-1]
                 else:
                     self.infection_probability_text += event.unicode
+            elif self.active_infection_radius:
+                if event.key == pygame.K_BACKSPACE:
+                    self.infection_radius_text = self.infection_radius_text[:-1]
+                else:
+                    self.infection_radius_text += event.unicode
 
     def draw(self, screen):
         pygame.draw.rect(screen, (50, 50, 50), (0, 0, self.width, self.height))
@@ -113,12 +136,13 @@ class Panel:
         screen.blit(title_surface, (self.width // 2 - title_surface.get_width() // 2, 20))
 
         # List of parameters for input boxes
-        input_labels = ["Cell Count", "Infected Count", "Cell Speed", "Infection Probability"]
+        input_labels = ["Cell Count", "Infected Count", "Cell Speed", "Infection Probability", "Infection Radius"]
         input_boxes = [
             (self.cell_count_input_box, self.cell_count_color, self.cell_count_text),
             (self.infected_count_input_box, self.infected_count_color, self.infected_count_text),
             (self.cell_speed_input_box, self.cell_speed_color, self.cell_speed_text),
-            (self.infection_probability_input_box, self.infection_probability_color, self.infection_probability_text)
+            (self.infection_probability_input_box, self.infection_probability_color, self.infection_probability_text),
+            (self.infection_radius_input_box, self.infection_radius_color, self.infection_radius_text)
         ]
 
         spacing = 10

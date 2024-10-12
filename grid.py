@@ -3,9 +3,8 @@ from cell import Cell
 import random
 import math
 
-
 class Grid:
-    def __init__(self, width, height, num_cells, infected_count=5, cell_speed=2, min_distance=20):
+    def __init__(self, width, height, num_cells, infected_count=5, cell_speed=2, min_distance=20, infection_probability=0.1):
         self.width = width
         self.height = height
         self.cells = []
@@ -14,6 +13,7 @@ class Grid:
         self.infected_count = infected_count
         self.cell_speed = cell_speed
         self.num_cells = num_cells
+        self.infection_probability = infection_probability
 
     def create_cells(self, num_cells, infected_count, cell_speed):
         self.cells.clear()
@@ -42,7 +42,7 @@ class Grid:
         for i, cell in enumerate(self.cells):
             cell.move(self.width, self.height)
             for other in self.cells[i + 1:]:
-                cell.handle_infection(other, infection_distance=20, infection_probability=0.1)
+                cell.handle_infection(other, infection_distance=20, infection_probability=self.infection_probability)
 
     def draw(self, screen, offset_x=0):
         for cell in self.cells:

@@ -4,17 +4,17 @@ import math
 import time
 
 class Cell:
-    def __init__(self, x, y, color=(255, 255, 255), radius=5, infected=False, speed=2, infection_display_duration=1):
+    def __init__(self, x, y, speed, infection_display_duration, size=5):
         self.x = x
         self.y = y
-        self.color = color
-        self.radius = radius
         self.speed = speed
+        self.infection_display_duration = infection_display_duration
+        self.size = size
+        self.radius = size // 2  # Assuming radius is half the size
+        self.infected = False
         angle = random.uniform(0, 2 * math.pi)
         self.direction = (math.cos(angle), math.sin(angle))
-        self.infected = infected
         self.last_infection_check = 0  # Time of the last infection check
-        self.infection_display_duration = infection_display_duration  # Duration to show infection radius
         self.infection_alpha = 255  # Alpha value for the infection radius
 
     def move(self, width, height):
@@ -35,7 +35,7 @@ class Cell:
             self.y = max(0, min(self.y, height))
 
     def draw(self, screen, offset_x=0):
-        color = (255, 0, 0) if self.infected else self.color
+        color = (255, 0, 0) if self.infected else (255, 255, 255)
         pygame.draw.circle(screen, color, (self.x + offset_x, self.y), self.radius)
 
         # Draw infection radius if the check was performed recently

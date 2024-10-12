@@ -4,7 +4,7 @@ import random
 import math
 
 class Grid:
-    def __init__(self, width, height, num_cells, infected_count=5, cell_speed=2, min_distance=20, infection_probability=0.1, infection_display_duration=1, infection_distance=20):
+    def __init__(self, width, height, num_cells, infected_count=5, cell_speed=2, min_distance=20, infection_probability=0.1, infection_display_duration=1, infection_distance=20, cell_size=5):
         self.width = width
         self.height = height
         self.cells = []
@@ -15,6 +15,7 @@ class Grid:
         self.infection_probability = infection_probability
         self.infection_display_duration = infection_display_duration
         self.infection_distance = infection_distance
+        self.cell_size = cell_size
 
     def create_cells(self, num_cells, infected_count, cell_speed):
         self.cells.clear()
@@ -29,7 +30,7 @@ class Grid:
         while True:
             new_x = random.randint(0, self.width)
             new_y = random.randint(0, self.height)
-            new_cell = Cell(new_x, new_y, speed=speed, infection_display_duration=self.infection_display_duration)
+            new_cell = Cell(new_x, new_y, speed=speed, infection_display_duration=self.infection_display_duration, size=self.cell_size)
 
             if all(self.is_far_enough(new_cell, other) for other in self.cells):
                 self.cells.append(new_cell)

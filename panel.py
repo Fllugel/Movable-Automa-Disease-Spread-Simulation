@@ -7,9 +7,9 @@ class Panel:
         self.grid = grid
 
         self.cell_count_input_box = pygame.Rect(width // 2 - 75, 70, 150, 30)
-        self.infected_count_input_box = pygame.Rect(width // 2 - 75, 150, 150, 30)
-        self.cell_speed_input_box = pygame.Rect(width // 2 - 75, 230, 150, 30)
-        self.infection_probability_input_box = pygame.Rect(width // 2 - 75, 310, 150, 30)
+        self.infected_count_input_box = pygame.Rect(width // 2 - 75, 110, 150, 30)
+        self.cell_speed_input_box = pygame.Rect(width // 2 - 75, 150, 150, 30)
+        self.infection_probability_input_box = pygame.Rect(width // 2 - 75, 190, 150, 30)
 
         self.color_inactive = pygame.Color(255, 255, 255)
         self.color_active = pygame.Color(200, 200, 200)
@@ -28,9 +28,11 @@ class Panel:
         self.infected_count_text = str(grid.infected_count)
         self.cell_speed_text = str(grid.cell_speed)
         self.infection_probability_text = "0.1"
+
+        pygame.font.init()
         self.font = pygame.font.Font(None, 20)
 
-        self.button = pygame.Rect(width // 2 - 50, 380, 100, 40)
+        self.button = pygame.Rect(width // 2 - 50, height - 80, 100, 40)
         self.button_color = (0, 128, 255)
         self.button_hover_color = (0, 100, 200)
         self.button_text = 'Start'
@@ -70,10 +72,10 @@ class Panel:
 
             if self.button.collidepoint(event.pos):
                 try:
-                    num_cells = int(self.cell_count_text) if self.cell_count_text else self.grid.num_cells
-                    infected_count = int(self.infected_count_text) if self.infected_count_text else self.grid.infected_count
-                    cell_speed = int(self.cell_speed_text) if self.cell_speed_text else self.grid.cell_speed
-                    infection_probability = float(self.infection_probability_text) if self.infection_probability_text else 0.1
+                    num_cells = int(self.cell_count_text) if self.cell_count_text.isdigit() else self.grid.num_cells
+                    infected_count = int(self.infected_count_text) if self.infected_count_text.isdigit() else self.grid.infected_count
+                    cell_speed = int(self.cell_speed_text) if self.cell_speed_text.isdigit() else self.grid.cell_speed
+                    infection_probability = float(self.infection_probability_text) if self.infection_probability_text.replace('.', '', 1).isdigit() else 0.1
 
                     self.grid.create_cells(num_cells, infected_count=infected_count, cell_speed=cell_speed)
                     self.grid.infection_probability = infection_probability
@@ -141,7 +143,6 @@ class Panel:
             current_y += box.height + spacing
 
         # Button
-        self.button.y = self.height - self.button.height - 40
         mouse_pos = pygame.mouse.get_pos()
         if self.button.collidepoint(mouse_pos):
             pygame.draw.rect(screen, self.button_hover_color, self.button)

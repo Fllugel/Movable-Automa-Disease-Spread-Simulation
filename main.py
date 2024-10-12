@@ -1,3 +1,4 @@
+# main.py
 import pygame
 import sys
 from grid import Grid
@@ -10,8 +11,11 @@ PANEL_WIDTH = 200
 NUM_CELLS = 100  # Total number of cells
 INFECTED_COUNT = 10  # Number of initially infected cells
 CELL_SPEED = 1  # Speed of cell movement
-FPS = 60 # FPS CLOCK
+FPS = 60  # FPS CLOCK
+INFECTION_PROBABILITY = 0.1  # Basic infection probability
 
+def get_infection_probability():
+    return INFECTION_PROBABILITY
 
 def main():
     pygame.init()
@@ -40,7 +44,6 @@ def main():
         grid.draw(screen, PANEL_WIDTH)
         pygame.display.flip()
         clock.tick(FPS)
-
 
 if __name__ == "__main__":
     main()

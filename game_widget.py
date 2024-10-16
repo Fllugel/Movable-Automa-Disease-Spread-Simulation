@@ -112,7 +112,8 @@ class GameWidget(QWidget):
         self.canvas.draw()
 
     def save_plot(self):
-        self.figure.savefig('simulation_plot.png', dpi=300)  # Зберігаємо з графіком у високій якості
+        # Зберігаємо графік разом з цифрами на осях
+        self.figure.savefig('simulation_plot.png', bbox_inches='tight', dpi=300)  # Зберігаємо графік з усіма осями і цифрами
 
     def quit(self):
         pygame.quit()

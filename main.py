@@ -21,11 +21,11 @@ class MainWindow(QMainWindow):
         param_layout = QVBoxLayout()
 
         self.cell_count_input = QLineEdit("500")
-        self.infected_count_input = QLineEdit("1")
+        self.infected_count_input = QLineEdit("10")
         self.cell_speed_input = QLineEdit("0.5")
-        self.infection_probability_input = QLineEdit("0.1")
-        self.infection_radius_input = QLineEdit("10")
-        self.infection_period_input = QLineEdit("10")
+        self.infection_probability_input = QLineEdit("0.05")
+        self.infection_radius_input = QLineEdit("10")  # Радіус повернено на 10
+        self.infection_period_input = QLineEdit("150")  # Реалістичний період зараження
 
         param_layout.addWidget(QLabel("Cell Count"))
         param_layout.addWidget(self.cell_count_input)

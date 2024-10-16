@@ -1,61 +1,80 @@
-import pygame
-import random
 import math
+import random
+import time
+
+import pygame
+
+from cell_state import CellState
+
+
+def _generate_random_direction():
+    angle = random.uniform(0, 2 * math.pi)
+    return math.cos(angle), math.sin(angle)
 
 
 class Cell:
-    def __init__(self, x, y, color=(255, 255, 255), radius=5, infected=False, speed=2):
+    def __init__(self, x, y, speed, infection_display_duration, size=5):
         self.x = x
         self.y = y
-        self.color = color
-        self.radius = radius
         self.speed = speed
-        angle = random.uniform(0, 2 * math.pi)
-        self.direction = (math.cos(angle), math.sin(angle))
-        self.infected = infected
+        self.infection_display_duration = infection_display_duration
+        self.size = size
+        self.radius = size // 2
+        self.state = CellState.SUSCEPTIBLE
+        self.infection_radius = 0
+        self.last_infection_check = 0
+        self.infection_alpha = 255
+        self.direction = _generate_random_direction()
 
     def move(self, width, height):
-        self.x += self.direction[0] * self.speed
-        self.y += self.direction[1] * self.speed
+        if self.speed != 0:
+            self._update_direction()
+            self.x += self.direction[0] * self.speed
+            self.y += self.direction[1] * self.speed
+            self._handle_boundaries(width, height)
 
-        # Collision with walls
+    def _update_direction(self):
+        angle_change = random.uniform(-0.1, 0.1)
+        new_direction_x = self.direction[0] * math.cos(angle_change) - self.direction[1] * math.sin(angle_change)
+        new_direction_y = self.direction[0] * math.sin(angle_change) + self.direction[1] * math.cos(angle_change)
+        length = math.sqrt(new_direction_x ** 2 + new_direction_y ** 2)
+        self.direction = (new_direction_x / length, new_direction_y / length)
+
+    def _handle_boundaries(self, width, height):
         if self.x < 0 or self.x > width:
-            self.direction = (-self.direction[0], self.direction[1])  # Reverse horizontal direction
+            self.direction = (-self.direction[0], self.direction[1])
+            self.x = max(0, min(self.x, width))
         if self.y < 0 or self.y > height:
-            self.direction = (self.direction[0], -self.direction[1])  # Reverse vertical direction
+            self.direction = (self.direction[0], -self.direction[1])
+            self.y = max(0, min(self.y, height))
 
     def draw(self, screen, offset_x=0):
-        # Change color based on infection status
-        color = (255, 0, 0) if self.infected else self.color
+        color = (255, 0, 0) if self.state == CellState.INFECTED else (255, 255, 255)
         pygame.draw.circle(screen, color, (self.x + offset_x, self.y), self.radius)
+        self._draw_infection_radius(screen, offset_x)
 
-    def check_collision(self, other):
-        distance = math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)
-        return distance < (self.radius + other.radius)
+    def _draw_infection_radius(self, screen, offset_x):
+        time_since_check = time.time() - self.last_infection_check
+        if time_since_check < self.infection_display_duration:
+            self.infection_alpha = max(0, 255 - int((time_since_check / self.infection_display_duration) * 255))
+            infection_radius_surface = pygame.Surface((max(1, self.infection_radius * 2), max(1, self.infection_radius * 2)),
+                                                      pygame.SRCALPHA)
+            pygame.draw.circle(infection_radius_surface, (0, 255, 0, self.infection_alpha),
+                               (self.infection_radius, self.infection_radius), self.infection_radius, 1)
+            screen.blit(infection_radius_surface,
+                        (self.x + offset_x - self.infection_radius, self.y - self.infection_radius))
 
-    def handle_collision(self, other):
-        if self.check_collision(other):
-            # Calculate the normal vector at the collision point
-            normal = (other.x - self.x, other.y - self.y)
-            normal_length = math.sqrt(normal[0] ** 2 + normal[1] ** 2)
-            normal = (normal[0] / normal_length, normal[1] / normal_length)  # Normalize the normal vector
+    def handle_infection(self, other, infection_distance, infection_probability):
+        if self.state != CellState.INFECTED or other.state != CellState.SUSCEPTIBLE:
+            return
 
-            # Calculate the dot product of the direction vectors
-            dot_product_self = self.direction[0] * normal[0] + self.direction[1] * normal[1]
-            dot_product_other = other.direction[0] * normal[0] + other.direction[1] * normal[1]
+        distance = self._calculate_distance(other)
+        if distance < infection_distance:
+            self.last_infection_check = time.time()
+            self.infection_radius = infection_distance
+            self.infection_alpha = 255
+            if random.random() < infection_probability:
+                other.state = CellState.INFECTED
 
-            # Reflect the directions based on the normal vector
-            self.direction = (
-                self.direction[0] - 2 * dot_product_self * normal[0],
-                self.direction[1] - 2 * dot_product_self * normal[1]
-            )
-            other.direction = (
-                other.direction[0] - 2 * dot_product_other * normal[0],
-                other.direction[1] - 2 * dot_product_other * normal[1]
-            )
-
-            # Infect the other cell if one is infected
-            if self.infected and not other.infected:
-                other.infected = True
-            elif other.infected and not self.infected:
-                self.infected = True
+    def _calculate_distance(self, other):
+        return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)

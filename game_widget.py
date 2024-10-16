@@ -1,10 +1,11 @@
 import pygame
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QCheckBox, QHBoxLayout
-from PyQt5.QtCore import QTimer, Qt
-from PyQt5.QtGui import QPainter, QImage, QFont
+from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QPainter, QImage
 from automaton import Automaton
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 
 class GameWidget(QWidget):
     def __init__(self, parent=None):
@@ -39,8 +40,10 @@ class GameWidget(QWidget):
         # Текст для R всередині графіка
         self.r_label_in_graph = None
 
-    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, infection_enabled=True, death_enabled=True):
-        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, infection_enabled, death_enabled)
+    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius,
+                         infection_period):
+        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability,
+                                   infection_radius, infection_period)
         self.time_data.clear()
         self.healthy_data.clear()
         self.infected_data.clear()
@@ -73,15 +76,22 @@ class GameWidget(QWidget):
         self.ax.clear()
         self.ax.set_facecolor('#253D47')  # Темний фон самого графіка
 
-        # Налаштування кольорів областей
-        self.ax.fill_between(self.time_data, 0, self.healthy_data, color='#7FB3D5', label='Susceptible')  # Темно-блакитний
-        self.ax.fill_between(self.time_data, self.healthy_data, [h + i for h, i in zip(self.healthy_data, self.infected_data)], color='#F1948A', label='Infectious')  # Червоний
-        self.ax.fill_between(self.time_data, [h + i for h, i in zip(self.healthy_data, self.infected_data)], [h + i + r for h, i, r in zip(self.healthy_data, self.infected_data, self.recovered_data)], color='#424949', label='Removed')  # Темно-сірий
+        total_population = [h + i + r for h, i, r in zip(self.healthy_data, self.infected_data, self.recovered_data)]
+
+        # Інфіковані на самому низу, одужавші зверху них, здорові зверху всіх
+        self.ax.fill_between(self.time_data, [i for i in self.infected_data], total_population, color='#7FB3D5',
+                             label='Susceptible')  # Блакитний зверху
+        self.ax.fill_between(self.time_data, [i for i in self.infected_data],
+                             [i + r for i, r in zip(self.infected_data, self.recovered_data)], color='#424949',
+                             label='Recovered')  # Темно-сірий для одужавших
+        self.ax.fill_between(self.time_data, 0, self.infected_data, color='#F1948A',
+                             label='Infectious')  # Червоний знизу
 
         # Додаємо текст R всередині графіка
         if self.r_label_in_graph:
             self.r_label_in_graph.remove()
-        self.r_label_in_graph = self.ax.text(0.9, 0.9, f"R ≈ {self.calculate_r_value():.2f}", transform=self.ax.transAxes, fontsize=12, color='white', ha='center')
+        self.r_label_in_graph = self.ax.text(0.9, 0.9, f"R ≈ {self.calculate_r_value():.2f}",
+                                             transform=self.ax.transAxes, fontsize=12, color='white', ha='center')
 
         # Переміщуємо легенду вниз, щоб не перекривала R
         self.ax.legend(loc='lower left', facecolor='#253D47', edgecolor='white')

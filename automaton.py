@@ -38,7 +38,7 @@ class Cell:
                 self.recovered = True
 
 class Automaton:
-    def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, infection_enabled=True, death_enabled=True):
+    def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period):
         self.width = width
         self.height = height
         self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed) for _ in range(cell_count)]
@@ -48,17 +48,13 @@ class Automaton:
         self.infection_probability = infection_probability
         self.infection_radius = infection_radius
         self.infection_period = infection_period
-        self.infection_enabled = infection_enabled
-        self.death_enabled = death_enabled
 
     def update(self):
         for cell in self.cells:
             cell.move(self.width, self.height)
-            if self.death_enabled:
-                cell.update_infection(self.infection_period)
+            cell.update_infection(self.infection_period)
 
-        if self.infection_enabled:
-            self.infect()
+        self.infect()
 
     def infect(self):
         for cell in self.cells:

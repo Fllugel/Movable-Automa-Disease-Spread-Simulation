@@ -1,5 +1,5 @@
 import sys
-from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QLabel, QPushButton
 from game_widget import GameWidget
 
 class MainWindow(QMainWindow):
@@ -45,15 +45,6 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(QLabel("Infection Period"))
         param_layout.addWidget(self.infection_period_input)
 
-        # Додано чекбокси для керування зараженням і смертністю
-        self.enable_infection_checkbox = QCheckBox("Enable Infection")
-        self.enable_infection_checkbox.setChecked(True)
-        param_layout.addWidget(self.enable_infection_checkbox)
-
-        self.enable_death_checkbox = QCheckBox("Enable Death/Recovery")
-        self.enable_death_checkbox.setChecked(True)
-        param_layout.addWidget(self.enable_death_checkbox)
-
         start_button = QPushButton("Start")
         start_button.clicked.connect(self.start_simulation)
         param_layout.addWidget(start_button)
@@ -84,12 +75,9 @@ class MainWindow(QMainWindow):
         infection_radius = int(self.infection_radius_input.text())
         infection_period = int(self.infection_period_input.text())
 
-        infection_enabled = self.enable_infection_checkbox.isChecked()
-        death_enabled = self.enable_death_checkbox.isChecked()
-
         self.game_widget.start_simulation(
             cell_count, infected_count, cell_speed, infection_probability,
-            infection_radius, infection_period, infection_enabled, death_enabled
+            infection_radius, infection_period
         )
 
 if __name__ == "__main__":

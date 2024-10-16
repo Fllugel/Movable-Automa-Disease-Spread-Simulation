@@ -9,14 +9,15 @@ HEIGHT = 600  # Height of the window
 PANEL_WIDTH = 200
 FPS = 60  # FPS CLOCK
 INFECTION_DISPLAY_DURATION = 0.5  # Duration to show infection radius
-CELL_SIZE = 6  # Size of each cell
+CELL_SIZE = 5  # Size of each cell
 
 # Panel basic values
 NUM_CELLS = 500  # Total number of cells
 INFECTED_COUNT = 1  # Number of initially infected cells
 CELL_SPEED = 0.5  # Speed of cell movement (allowing lower speeds)
-INFECTION_PROBABILITY = 0.2  # Basic infection probability
-INFECTION_RADIUS = 11  # Basic infection radius
+INFECTION_PROBABILITY = 0.1  # Basic infection probability
+INFECTION_RADIUS = 10  # Basic infection radius
+INFECTED_PERIOD = 10  # Time, for how long is the cell will be infected
 
 def main():
     pygame.init()
@@ -24,7 +25,7 @@ def main():
     pygame.display.set_caption("Cellular Automaton - Infection Simulation")
 
     # Create the grid with specified settings
-    grid = Grid(WIDTH, HEIGHT, NUM_CELLS, cell_size=CELL_SIZE, infected_count=INFECTED_COUNT, cell_speed=CELL_SPEED, infection_probability=INFECTION_PROBABILITY, infection_distance=INFECTION_RADIUS, infection_display_duration=INFECTION_DISPLAY_DURATION)
+    grid = Grid(WIDTH, HEIGHT, NUM_CELLS, cell_size=CELL_SIZE, infected_count=INFECTED_COUNT, cell_speed=CELL_SPEED, infection_probability=INFECTION_PROBABILITY, infection_distance=INFECTION_RADIUS, infection_display_duration=INFECTION_DISPLAY_DURATION, infection_period=INFECTED_PERIOD)
 
     panel = Panel(PANEL_WIDTH, HEIGHT, grid)
 

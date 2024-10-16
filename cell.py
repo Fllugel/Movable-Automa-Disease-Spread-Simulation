@@ -13,7 +13,7 @@ def _generate_random_direction():
 
 
 class Cell:
-    def __init__(self, x, y, speed, infection_display_duration, size=5):
+    def __init__(self, x, y, speed, infection_display_duration, infection_period, size=5):
         self.x = x
         self.y = y
         self.speed = speed
@@ -25,6 +25,8 @@ class Cell:
         self.last_infection_check = 0
         self.infection_alpha = 255
         self.direction = _generate_random_direction()
+        self.infection_start_time = None
+        self.infection_period = infection_period
 
     def move(self, width, height):
         if self.speed != 0:
@@ -32,6 +34,10 @@ class Cell:
             self.x += self.direction[0] * self.speed
             self.y += self.direction[1] * self.speed
             self._handle_boundaries(width, height)
+
+        if self.state == CellState.INFECTED and self.infection_start_time is not None:
+            if time.time() - self.infection_start_time > self.infection_period:
+                self.state = CellState.RECOVERED
 
     def _update_direction(self):
         angle_change = random.uniform(-0.1, 0.1)
@@ -49,7 +55,13 @@ class Cell:
             self.y = max(0, min(self.y, height))
 
     def draw(self, screen, offset_x=0):
-        color = (255, 0, 0) if self.state == CellState.INFECTED else (255, 255, 255)
+        if self.state == CellState.INFECTED:
+            color = (255, 0, 0)
+        elif self.state == CellState.RECOVERED:
+            color = (0, 255, 0)
+        else:
+            color = (255, 255, 255)
+
         pygame.draw.circle(screen, color, (self.x + offset_x, self.y), self.radius)
         self._draw_infection_radius(screen, offset_x)
 
@@ -75,6 +87,7 @@ class Cell:
             self.infection_alpha = 255
             if random.random() < infection_probability:
                 other.state = CellState.INFECTED
+                other.infection_start_time = time.time()
 
     def _calculate_distance(self, other):
         return math.sqrt((self.x - other.x) ** 2 + (self.y - other.y) ** 2)

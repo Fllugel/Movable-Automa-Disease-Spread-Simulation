@@ -14,6 +14,8 @@ class GameWidget(QWidget):
         self.screen = pygame.Surface((600, 400))
         self.automaton = None
         self.theme = 'dark'  # Темна тема за замовчуванням
+        self.is_paused = False
+        self.auto_stop_enabled = False
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.game_loop)
         self.timer.start(16)
@@ -59,8 +61,15 @@ class GameWidget(QWidget):
         self.theme = 'light' if self.theme == 'dark' else 'dark'
         self.set_plot_background()
 
-    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period):
-        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period)
+    def toggle_pause(self):
+        self.is_paused = not self.is_paused
+        self.automaton.running = not self.is_paused
+
+    def toggle_auto_stop(self):
+        self.auto_stop_enabled = not self.auto_stop_enabled
+
+    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, cell_size):
+        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, cell_size)
         self.time_data.clear()
         self.healthy_data.clear()
         self.infected_data.clear()
@@ -68,12 +77,14 @@ class GameWidget(QWidget):
         self.time_step = 0
 
     def game_loop(self):
-        if self.automaton:
+        if self.automaton and not self.is_paused:
             self.automaton.update()
             background_color = BACKGROUND_DARK if self.theme == 'dark' else BACKGROUND_LIGHT
             self.automaton.draw(self.screen, background_color)
             self.repaint()
             self.update_statistics()
+            if self.auto_stop_enabled:
+                self.automaton.stop_if_no_infected()
 
     def update_statistics(self):
         self.time_step += 1
@@ -99,6 +110,9 @@ class GameWidget(QWidget):
         self.ax.fill_between(self.time_data, 0, self.infected_data, color='#F1948A', label='Infectious')
         self.ax.legend(loc='lower left', facecolor='#253D47' if self.theme == 'dark' else '#FFFFFF', edgecolor='white')
         self.canvas.draw()
+
+    def save_plot(self):
+        self.figure.savefig('simulation_plot.png', dpi=300)  # Зберігаємо з графіком у високій якості
 
     def quit(self):
         pygame.quit()

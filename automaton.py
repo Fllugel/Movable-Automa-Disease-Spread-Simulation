@@ -10,7 +10,7 @@ BACKGROUND_DARK = (0, 0, 0)  # Темний фон для гри
 BACKGROUND_LIGHT = (255, 255, 255)  # Світлий фон для гри
 
 class Cell:
-    def __init__(self, x, y, speed, infected=False):
+    def __init__(self, x, y, speed, infected=False, size=3):
         self.x = x
         self.y = y
         self.speed_x = random.uniform(-speed, speed)
@@ -19,6 +19,7 @@ class Cell:
         self.infection_time = 0
         self.recovered = False
         self.speed = speed
+        self.size = size
 
     def move(self, width, height):
         self.speed_x += random.uniform(-0.05, 0.05)  # Легка зміна швидкості
@@ -45,10 +46,10 @@ class Cell:
                 self.recovered = True
 
 class Automaton:
-    def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period):
+    def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, cell_size):
         self.width = width
         self.height = height
-        self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed) for _ in range(cell_count)]
+        self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed, size=cell_size) for _ in range(cell_count)]
         for i in range(infected_count):
             self.cells[i].infected = True
 
@@ -58,8 +59,12 @@ class Automaton:
         self.radius_animation_phase = 0
         self.radius_to_draw = []  # Список для клітин, де малюємо радіус
         self.infection_check_timer = defaultdict(lambda: -float('inf'))  # Таймер для перевірок інфікування
+        self.running = True  # Статус симуляції
 
     def update(self):
+        if not self.running:
+            return
+
         self.radius_animation_phase = (self.radius_animation_phase + 1) % 120
         self.radius_to_draw.clear()
         for cell in self.cells:
@@ -91,7 +96,7 @@ class Automaton:
                 color = RED
             else:
                 color = WHITE
-            pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), 3)
+            pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), cell.size)
 
         # Малюємо радіус зараження для клітин, де була перевірка ймовірності зараження
         surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
@@ -108,3 +113,8 @@ class Automaton:
         infected = len([c for c in self.cells if c.infected])
         recovered = len([c for c in self.cells if c.recovered])
         return healthy, infected, recovered
+
+    def stop_if_no_infected(self):
+        infected = len([c for c in self.cells if c.infected])
+        if infected == 0:
+            self.running = False

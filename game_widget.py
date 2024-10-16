@@ -33,6 +33,7 @@ class GameWidget(QWidget):
         self.healthy_data = []
         self.infected_data = []
         self.recovered_data = []
+        self.dead_data = []  # Нові дані для померлих
         self.time_step = 0
 
     def set_plot_background(self):
@@ -68,12 +69,13 @@ class GameWidget(QWidget):
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
-    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, cell_size):
-        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, cell_size)
+    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size):
+        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size)
         self.time_data.clear()
         self.healthy_data.clear()
         self.infected_data.clear()
         self.recovered_data.clear()
+        self.dead_data.clear()  # Очищуємо дані про померлих
         self.time_step = 0
 
     def game_loop(self):
@@ -88,11 +90,12 @@ class GameWidget(QWidget):
 
     def update_statistics(self):
         self.time_step += 1
-        healthy, infected, recovered = self.automaton.get_statistics()
+        healthy, infected, recovered, dead = self.automaton.get_statistics()
         self.time_data.append(self.time_step)
         self.healthy_data.append(healthy)
         self.infected_data.append(infected)
         self.recovered_data.append(recovered)
+        self.dead_data.append(dead)  # Додаємо дані про померлих
         self.update_plot()
 
     def paintEvent(self, event):
@@ -104,16 +107,31 @@ class GameWidget(QWidget):
     def update_plot(self):
         self.ax.clear()
         self.set_plot_background()
-        total_population = [h + i + r for h, i, r in zip(self.healthy_data, self.infected_data, self.recovered_data)]
-        self.ax.fill_between(self.time_data, [i for i in self.infected_data], total_population, color='#7FB3D5', label='Susceptible')
-        self.ax.fill_between(self.time_data, [i for i in self.infected_data], [i + r for i, r in zip(self.infected_data, self.recovered_data)], color='#424949', label='Recovered')
-        self.ax.fill_between(self.time_data, 0, self.infected_data, color='#F1948A', label='Infectious')
+
+        # Загальна популяція, що не перевищує задану кількість клітин
+        total_population = max([h + i + r + d for h, i, r, d in zip(self.healthy_data, self.infected_data, self.recovered_data, self.dead_data)], default=0)
+
+        if total_population == 0:
+            total_population = len(self.healthy_data)
+
+        dead_recovered_infected = [i + r + d for i, r, d in zip(self.infected_data, self.recovered_data, self.dead_data)]
+        recovered_infected = [i + r for i, r in zip(self.infected_data, self.recovered_data)]
+
+        # Шари від нижнього до верхнього
+        self.ax.fill_between(self.time_data, 0, self.infected_data, color='#F1948A', label='Infectious')  # Червоний (інфіковані)
+        self.ax.fill_between(self.time_data, self.infected_data, recovered_infected, color='#424949', label='Recovered')  # Сірий (одужалі)
+        self.ax.fill_between(self.time_data, recovered_infected, dead_recovered_infected, color='black', label='Dead')  # Чорний (мертві)
+
+        # Якщо немає більше здорових (сприйнятливих), не малюємо цей шар
+        if total_population - max(dead_recovered_infected) > 0:
+            self.ax.fill_between(self.time_data, dead_recovered_infected, [total_population] * len(dead_recovered_infected), color='#7FB3D5', label='Susceptible')  # Блакитний (сприйнятливі)
+
         self.ax.legend(loc='lower left', facecolor='#253D47' if self.theme == 'dark' else '#FFFFFF', edgecolor='white')
         self.canvas.draw()
 
     def save_plot(self):
         # Зберігаємо графік разом з цифрами на осях
-        self.figure.savefig('simulation_plot.png', bbox_inches='tight', dpi=300)  # Зберігаємо графік з усіма осями і цифрами
+        self.figure.savefig('simulation_plot.png', bbox_inches='tight', dpi=300)
 
     def quit(self):
         pygame.quit()

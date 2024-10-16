@@ -1,51 +1,99 @@
-import pygame
 import sys
-from grid import Grid
-from panel import Panel
+from PyQt5.QtWidgets import QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox
+from game_widget import GameWidget
 
-# Game settings
-WIDTH = 800  # Width of the window
-HEIGHT = 600  # Height of the window
-PANEL_WIDTH = 200
-FPS = 60  # FPS CLOCK
-INFECTION_DISPLAY_DURATION = 0.5  # Duration to show infection radius
-CELL_SIZE = 5  # Size of each cell
+class MainWindow(QMainWindow):
+    def __init__(self):
+        super().__init__()
 
-# Panel basic values
-NUM_CELLS = 500  # Total number of cells
-INFECTED_COUNT = 1  # Number of initially infected cells
-CELL_SPEED = 0.5  # Speed of cell movement (allowing lower speeds)
-INFECTION_PROBABILITY = 0.1  # Basic infection probability
-INFECTION_RADIUS = 10  # Basic infection radius
-INFECTED_PERIOD = 10  # Time, for how long is the cell will be infected
+        self.setWindowTitle("Cellular Automaton - Infection Simulation")
+        self.setGeometry(100, 100, 1000, 700)  # Розмір вікна
 
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH + PANEL_WIDTH, HEIGHT))
-    pygame.display.set_caption("Cellular Automaton - Infection Simulation")
+        # Головне вікно
+        main_widget = QWidget()
+        layout = QVBoxLayout()
 
-    # Create the grid with specified settings
-    grid = Grid(WIDTH, HEIGHT, NUM_CELLS, cell_size=CELL_SIZE, infected_count=INFECTED_COUNT, cell_speed=CELL_SPEED, infection_probability=INFECTION_PROBABILITY, infection_distance=INFECTION_RADIUS, infection_display_duration=INFECTION_DISPLAY_DURATION, infection_period=INFECTED_PERIOD)
+        # Верхній рядок: параметри і симуляція
+        top_layout = QHBoxLayout()
 
-    panel = Panel(PANEL_WIDTH, HEIGHT, grid)
+        # Ліва панель з параметрами
+        param_panel = QWidget()
+        param_layout = QVBoxLayout()
 
-    clock = pygame.time.Clock()
+        self.cell_count_input = QLineEdit("500")
+        self.infected_count_input = QLineEdit("1")
+        self.cell_speed_input = QLineEdit("0.5")
+        self.infection_probability_input = QLineEdit("0.1")
+        self.infection_radius_input = QLineEdit("10")
+        self.infection_period_input = QLineEdit("10")
 
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
+        param_layout.addWidget(QLabel("Cell Count"))
+        param_layout.addWidget(self.cell_count_input)
 
-            panel.handle_event(event)
+        param_layout.addWidget(QLabel("Infected Count"))
+        param_layout.addWidget(self.infected_count_input)
 
-        grid.update()
+        param_layout.addWidget(QLabel("Cell Speed"))
+        param_layout.addWidget(self.cell_speed_input)
 
-        screen.fill((0, 0, 0))  # Clear the screen
-        panel.draw(screen)
-        grid.draw(screen, PANEL_WIDTH)
-        pygame.display.flip()
-        clock.tick(FPS)
+        param_layout.addWidget(QLabel("Infection Probability"))
+        param_layout.addWidget(self.infection_probability_input)
+
+        param_layout.addWidget(QLabel("Infection Radius"))
+        param_layout.addWidget(self.infection_radius_input)
+
+        param_layout.addWidget(QLabel("Infection Period"))
+        param_layout.addWidget(self.infection_period_input)
+
+        # Додано чекбокси для керування зараженням і смертністю
+        self.enable_infection_checkbox = QCheckBox("Enable Infection")
+        self.enable_infection_checkbox.setChecked(True)
+        param_layout.addWidget(self.enable_infection_checkbox)
+
+        self.enable_death_checkbox = QCheckBox("Enable Death/Recovery")
+        self.enable_death_checkbox.setChecked(True)
+        param_layout.addWidget(self.enable_death_checkbox)
+
+        start_button = QPushButton("Start")
+        start_button.clicked.connect(self.start_simulation)
+        param_layout.addWidget(start_button)
+
+        param_panel.setLayout(param_layout)
+
+        # Додаємо панель параметрів зліва
+        top_layout.addWidget(param_panel)
+
+        # Віджет гри (Pygame)
+        self.game_widget = GameWidget(self)
+        top_layout.addWidget(self.game_widget)
+
+        # Додаємо верхній рядок у головне вікно
+        layout.addLayout(top_layout)
+
+        # Додаємо графік знизу
+        layout.addWidget(self.game_widget.canvas)
+
+        main_widget.setLayout(layout)
+        self.setCentralWidget(main_widget)
+
+    def start_simulation(self):
+        cell_count = int(self.cell_count_input.text())
+        infected_count = int(self.infected_count_input.text())
+        cell_speed = float(self.cell_speed_input.text())
+        infection_probability = float(self.infection_probability_input.text())
+        infection_radius = int(self.infection_radius_input.text())
+        infection_period = int(self.infection_period_input.text())
+
+        infection_enabled = self.enable_infection_checkbox.isChecked()
+        death_enabled = self.enable_death_checkbox.isChecked()
+
+        self.game_widget.start_simulation(
+            cell_count, infected_count, cell_speed, infection_probability,
+            infection_radius, infection_period, infection_enabled, death_enabled
+        )
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())

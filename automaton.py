@@ -1,10 +1,13 @@
 import random
 import pygame
 import math
+from collections import defaultdict
 
 WHITE = (127, 179, 213)  # Здоровий (блакитний)
 GREEN = (66, 66, 66)     # Видужав (темно-сірий)
 RED = (241, 148, 138)    # Заражений (червоний)
+BACKGROUND_DARK = (0, 0, 0)  # Темний фон для гри
+BACKGROUND_LIGHT = (255, 255, 255)  # Світлий фон для гри
 
 class Cell:
     def __init__(self, x, y, speed, infected=False):
@@ -18,7 +21,6 @@ class Cell:
         self.speed = speed
 
     def move(self, width, height):
-        # Додаємо трохи випадковості до швидкості для нелінійного руху
         self.speed_x += random.uniform(-0.05, 0.05)  # Легка зміна швидкості
         self.speed_y += random.uniform(-0.05, 0.05)
 
@@ -53,13 +55,13 @@ class Automaton:
         self.infection_probability = infection_probability
         self.infection_radius = infection_radius
         self.infection_period = infection_period
-        self.radius_animation_phase = 0  # Фаза анімації для радіуса
+        self.radius_animation_phase = 0
         self.radius_to_draw = []  # Список для клітин, де малюємо радіус
+        self.infection_check_timer = defaultdict(lambda: -float('inf'))  # Таймер для перевірок інфікування
 
     def update(self):
-        # Оновлюємо фазу анімації для плавної зміни радіусу
-        self.radius_animation_phase = (self.radius_animation_phase + 1) % 120  # Плавніша анімація
-        self.radius_to_draw.clear()  # Очищуємо список клітин для малювання радіуса
+        self.radius_animation_phase = (self.radius_animation_phase + 1) % 120
+        self.radius_to_draw.clear()
         for cell in self.cells:
             cell.move(self.width, self.height)
             cell.update_infection(self.infection_period)
@@ -73,14 +75,15 @@ class Automaton:
                     if not other.infected and not other.recovered:
                         dist = math.hypot(cell.x - other.x, cell.y - other.y)
                         if dist < self.infection_radius:
-                            # Додаємо клітину для відображення радіуса зараження
-                            self.radius_to_draw.append(cell)
-                            # Перевірка ймовірності зараження
-                            if random.random() < self.infection_probability:
-                                other.infected = True
+                            key = (id(cell), id(other))  # Унікальний ключ для кожної пари клітин
+                            if pygame.time.get_ticks() - self.infection_check_timer[key] > 1000:  # Таймер в 1 сек.
+                                self.radius_to_draw.append(cell)
+                                self.infection_check_timer[key] = pygame.time.get_ticks()  # Оновлення таймера
+                                if random.random() < self.infection_probability:
+                                    other.infected = True
 
-    def draw(self, screen):
-        screen.fill((0, 0, 0))
+    def draw(self, screen, background_color):
+        screen.fill(background_color)
         for cell in self.cells:
             if cell.recovered:
                 color = GREEN
@@ -91,17 +94,14 @@ class Automaton:
             pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), 3)
 
         # Малюємо радіус зараження для клітин, де була перевірка ймовірності зараження
-        surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)  # Прозора поверхня для радіусів
+        surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         for cell in self.radius_to_draw:
-            # Зміна прозорості та розміру для плавного ефекту хвилі
-            opacity = max(0, 80 - math.sin(self.radius_animation_phase / 60 * math.pi) * 80)  # Плавне зникання
-            animated_radius = self.infection_radius + math.sin(self.radius_animation_phase / 60 * math.pi) * 10  # Плавна хвиля
-            color_with_opacity = (241, 148, 138)  # Колір без альфа-каналу для `pygame.draw.circle`
-            # Створюємо прозорий поверх з альфа-прозорістю
+            opacity = max(0, 80 - math.sin(self.radius_animation_phase / 60 * math.pi) * 80)
+            animated_radius = self.infection_radius + math.sin(self.radius_animation_phase / 60 * math.pi) * 10
+            color_with_opacity = (241, 148, 138)
             pygame.draw.circle(surface, color_with_opacity, (int(cell.x), int(cell.y)), int(animated_radius), 1)
-            # Накладаємо прозору поверхню з радіусом
             surface.set_alpha(int(opacity))
-        screen.blit(surface, (0, 0))  # Виводимо прозору поверхню на екран
+        screen.blit(surface, (0, 0))
 
     def get_statistics(self):
         healthy = len([c for c in self.cells if not c.infected and not c.recovered])

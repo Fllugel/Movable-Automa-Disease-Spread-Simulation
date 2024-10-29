@@ -1,10 +1,11 @@
 import pygame
-from PyQt5.QtWidgets import QWidget, QVBoxLayout
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPainter, QImage
 from automaton import Automaton, BACKGROUND_DARK
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 
 class GameWidget(QWidget):
     def __init__(self, parent=None):
@@ -18,6 +19,10 @@ class GameWidget(QWidget):
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.game_loop)
         self.timer.start(16)
+
+        # Daily statistics labels
+        self.daily_stats_label = QLabel("Day: 1\nDaily Counts:\nInfected: 0\nRecovered: 0\nDead: 0", self)
+        self.daily_stats_label.move(620, 0)  # Positioning on the right side of the screen
 
         self.figure, self.ax = plt.subplots()
         self.canvas = FigureCanvas(self.figure)
@@ -33,6 +38,9 @@ class GameWidget(QWidget):
         self.recovered_data = []
         self.dead_data = []
         self.time_step = 0
+        self.cycles_per_day = 200  # Number of cycles representing a day
+        self.cycle_counter = 0  # To keep track of cycles within a day
+        self.current_day = 1  # Initialize the day counter
 
     def set_plot_background(self):
         self.ax.set_facecolor('white')
@@ -52,14 +60,18 @@ class GameWidget(QWidget):
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
-    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size):
-        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size)
+    def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius,
+                         infection_period, death_probability, cell_size):
+        self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability,
+                                   infection_radius, infection_period, death_probability, cell_size)
         self.time_data.clear()
         self.healthy_data.clear()
         self.infected_data.clear()
         self.recovered_data.clear()
         self.dead_data.clear()
         self.time_step = 0
+        self.cycle_counter = 0  # Reset cycle counter
+        self.current_day = 1  # Reset the day counter
 
     def game_loop(self):
         if self.automaton and not self.is_paused:
@@ -78,6 +90,20 @@ class GameWidget(QWidget):
         self.infected_data.append(infected)
         self.recovered_data.append(recovered)
         self.dead_data.append(dead)
+
+        # Count cycles to represent a "day"
+        self.cycle_counter += 1
+        if self.cycle_counter >= self.cycles_per_day:
+            # Get and display daily stats
+            daily_stats = self.automaton.reset_daily_statistics()
+            # Update daily stats label with the current day and statistics
+            if hasattr(self, 'daily_stats_label'):
+                self.daily_stats_label.setText(
+                    f"Day: {self.current_day}\nDaily Counts:\nInfected: {daily_stats['infected']}\nRecovered: {daily_stats['recovered']}\nDead: {daily_stats['dead']}"
+                )
+            self.current_day += 1  # Move to the next day
+            self.cycle_counter = 0  # Reset cycle counter for the next day
+
         self.update_plot()
 
     def paintEvent(self, event):

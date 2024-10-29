@@ -55,7 +55,6 @@ class Cell:
         if self.infected:
             self.infection_time += 1
             if self.infection_time >= infection_period:
-                # Ймовірність смерті тепер рахується від тих, хто одужує
                 if random.random() < death_probability:
                     self.dead = True
                 else:
@@ -78,6 +77,7 @@ class Automaton:
         self.radius_to_draw = []  # Список для клітин, де малюємо радіус
         self.infection_check_timer = defaultdict(lambda: -float('inf'))  # Таймер для перевірок інфікування
         self.running = True  # Статус симуляції
+        self.daily_statistics = {"infected": 0, "recovered": 0, "dead": 0}
 
     def update(self):
         if not self.running:
@@ -87,7 +87,12 @@ class Automaton:
         self.radius_to_draw.clear()
         for cell in self.cells:
             cell.move(self.width, self.height)
-            cell.update_infection(self.infection_period, self.death_probability)
+            if cell.infected:
+                cell.update_infection(self.infection_period, self.death_probability)
+                if cell.dead:
+                    self.daily_statistics["dead"] += 1
+                elif cell.recovered:
+                    self.daily_statistics["recovered"] += 1
 
         self.infect()
 
@@ -98,12 +103,13 @@ class Automaton:
                     if not other.infected and not other.recovered and not other.dead:
                         dist = math.hypot(cell.x - other.x, cell.y - other.y)
                         if dist < self.infection_radius:
-                            key = (id(cell), id(other))  # Унікальний ключ для кожної пари клітин
-                            if pygame.time.get_ticks() - self.infection_check_timer[key] > 1000:  # Таймер в 1 сек.
+                            key = (id(cell), id(other))
+                            if pygame.time.get_ticks() - self.infection_check_timer[key] > 1000:
                                 self.radius_to_draw.append(cell)
-                                self.infection_check_timer[key] = pygame.time.get_ticks()  # Оновлення таймера
+                                self.infection_check_timer[key] = pygame.time.get_ticks()
                                 if random.random() < self.infection_probability:
                                     other.infected = True
+                                    self.daily_statistics["infected"] += 1
 
     def draw(self, screen, background_color):
         screen.fill(background_color)
@@ -118,7 +124,6 @@ class Automaton:
                 color = WHITE
             pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), cell.size)
 
-        # Малюємо радіус зараження для клітин, де була перевірка ймовірності зараження
         surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         for cell in self.radius_to_draw:
             opacity = max(0, 80 - math.sin(self.radius_animation_phase / 60 * math.pi) * 80)
@@ -135,7 +140,11 @@ class Automaton:
         dead = len([c for c in self.cells if c.dead])
         return healthy, infected, recovered, dead
 
+    def reset_daily_statistics(self):
+        daily_stats = self.daily_statistics.copy()
+        self.daily_statistics = {"infected": 0, "recovered": 0, "dead": 0}
+        return daily_stats
+
     def stop_if_no_infected(self):
-        infected = len([c for c in self.cells if c.infected])
-        if infected == 0:
+        if all(not cell.infected for cell in self.cells):
             self.running = False

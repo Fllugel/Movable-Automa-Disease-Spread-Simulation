@@ -5,6 +5,7 @@ from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout
 from PyQt5.QtGui import QPalette, QColor
 from game_widget import GameWidget
 
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -47,8 +48,8 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(QLabel("Death Probability"))
         param_layout.addWidget(self.death_probability_input)
         param_layout.addWidget(QLabel("Cell Size"))
-
         param_layout.addWidget(self.cell_size_input)
+
         auto_stop_checkbox = QCheckBox("Stop when no infected")
         auto_stop_checkbox.setFixedHeight(20)
         auto_stop_checkbox.stateChanged.connect(self.toggle_auto_stop)
@@ -69,6 +70,10 @@ class MainWindow(QMainWindow):
         save_button.clicked.connect(self.save_plot)
         param_layout.addWidget(save_button)
 
+        # Daily statistics label
+        self.daily_stats_label = QLabel("Daily Counts:\nInfected: 0\nRecovered: 0\nDead: 0")
+        param_layout.addWidget(self.daily_stats_label)
+
         param_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
 
         param_panel.setLayout(param_layout)
@@ -79,6 +84,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(scroll_area, 0, 0, 2, 1)
 
         self.game_widget = GameWidget(self)
+        self.game_widget.daily_stats_label = self.daily_stats_label  # Reference to update daily stats
         layout.addWidget(self.game_widget, 0, 1)
         layout.addWidget(self.game_widget.canvas, 1, 1)
 
@@ -106,6 +112,7 @@ class MainWindow(QMainWindow):
 
     def save_plot(self):
         self.game_widget.save_plot()
+
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

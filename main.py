@@ -68,6 +68,12 @@ class MainWindow(QMainWindow):
         save_button = QPushButton("Save Plot")
         save_button.setFixedHeight(30)
         save_button.clicked.connect(self.save_plot)
+
+        # Toggle Animation Visibility Button
+        toggle_button = QPushButton("Show/Hide Animation")
+        toggle_button.setFixedHeight(30)
+        toggle_button.clicked.connect(self.toggle_animation_visibility)
+        param_layout.addWidget(toggle_button)
         param_layout.addWidget(save_button)
 
         # Daily statistics label
@@ -84,6 +90,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(scroll_area, 0, 0, 2, 1)
 
         self.game_widget = GameWidget(self)
+        self.game_widget.setVisible(True)  # Initialize as visible
         self.game_widget.daily_stats_label = self.daily_stats_label  # Reference to update daily stats
         layout.addWidget(self.game_widget, 0, 1)
         layout.addWidget(self.game_widget.canvas, 1, 1)
@@ -112,6 +119,9 @@ class MainWindow(QMainWindow):
 
     def save_plot(self):
         self.game_widget.save_plot()
+
+    def toggle_animation_visibility(self):
+        self.game_widget.setVisible(not self.game_widget.isVisible())
 
 
 if __name__ == "__main__":

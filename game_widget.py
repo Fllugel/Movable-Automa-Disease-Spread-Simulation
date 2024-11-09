@@ -1,5 +1,5 @@
 import pygame
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QLabel
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPainter, QImage
 from automaton import Automaton, BACKGROUND_DARK
@@ -83,16 +83,19 @@ class GameWidget(QWidget):
                 self.automaton.stop_if_no_infected()
 
     def update_statistics(self):
-        # Отримуємо поточну кількість для кожного стану
+        self.time_step += 1
         healthy, infected, recovered, dead = self.automaton.get_statistics()
-        infected_count = infected
-        recovered_count = recovered
-        dead_count = dead
+        self.time_data.append(self.time_step)
+        self.healthy_data.append(healthy)
+        self.infected_data.append(infected)
+        self.recovered_data.append(recovered)
+        self.dead_data.append(dead)
 
-        # Оновлюємо текст у мітці для відображення цих значень
         self.daily_stats_label.setText(
-            f"Infected: {infected_count}\nRecovered: {recovered_count}\nDead: {dead_count}"
+            f"Infected: {infected}\nRecovered: {recovered}\nDead: {dead}"
         )
+
+        self.update_plot()
 
     def paintEvent(self, event):
         painter = QPainter(self)

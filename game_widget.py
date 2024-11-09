@@ -55,7 +55,7 @@ class GameWidget(QWidget):
 
     def toggle_pause(self):
         self.is_paused = not self.is_paused
-        self.automaton.running = not self.is_paused
+        # self.automaton.running = not self.is_paused
 
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
@@ -74,11 +74,12 @@ class GameWidget(QWidget):
         self.current_day = 1  # Reset the day counter
 
     def game_loop(self):
-        if self.automaton and not self.is_paused:
-            self.automaton.update()
+        if self.automaton:
+            if not self.is_paused:
+                self.automaton.update()
+                self.update_statistics()
             self.automaton.draw(self.screen, BACKGROUND_DARK)
             self.repaint()
-            self.update_statistics()
             if self.auto_stop_enabled:
                 self.automaton.stop_if_no_infected()
 

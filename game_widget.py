@@ -83,28 +83,16 @@ class GameWidget(QWidget):
                 self.automaton.stop_if_no_infected()
 
     def update_statistics(self):
-        self.time_step += 1
+        # Отримуємо поточну кількість для кожного стану
         healthy, infected, recovered, dead = self.automaton.get_statistics()
-        self.time_data.append(self.time_step)
-        self.healthy_data.append(healthy)
-        self.infected_data.append(infected)
-        self.recovered_data.append(recovered)
-        self.dead_data.append(dead)
+        infected_count = infected
+        recovered_count = recovered
+        dead_count = dead
 
-        # Count cycles to represent a "day"
-        self.cycle_counter += 1
-        if self.cycle_counter >= self.cycles_per_day:
-            # Get and display daily stats
-            daily_stats = self.automaton.reset_daily_statistics()
-            # Update daily stats label with the current day and statistics
-            if hasattr(self, 'daily_stats_label'):
-                self.daily_stats_label.setText(
-                    f"Day: {self.current_day}\nDaily Counts:\nInfected: {daily_stats['infected']}\nRecovered: {daily_stats['recovered']}\nDead: {daily_stats['dead']}"
-                )
-            self.current_day += 1  # Move to the next day
-            self.cycle_counter = 0  # Reset cycle counter for the next day
-
-        self.update_plot()
+        # Оновлюємо текст у мітці для відображення цих значень
+        self.daily_stats_label.setText(
+            f"Infected: {infected_count}\nRecovered: {recovered_count}\nDead: {dead_count}"
+        )
 
     def paintEvent(self, event):
         painter = QPainter(self)

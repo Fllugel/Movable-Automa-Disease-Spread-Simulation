@@ -56,15 +56,15 @@ class Automaton:
         for cell in self.cells:
             if cell.state == CellState.INFECTED:
                 for other in self.cells:
-                    if other.state == CellState.HEALTHY:
-                        self._attempt_infection(cell, other)
-
-    def _attempt_infection(self, infected, other):
-        distance = math.sqrt((infected.x - other.x) ** 2 + (infected.y - other.y) ** 2)
-        if distance < self.infection_radius:
-            if random.random() < self.infection_probability:
-                other.state = CellState.LATENT
-                self.daily_statistics["infected"] += 1
+                    if other.state not in [CellState.INFECTED, CellState.RECOVERED, CellState.DEAD]:
+                        dist = math.hypot(cell.x - other.x, cell.y - other.y)
+                        if dist < self.infection_radius:
+                            key = (id(cell), id(other))
+                            if pygame.time.get_ticks() - self.infection_check_timer[key] > 1000:
+                                self.radius_to_draw.append(cell)
+                                self.infection_check_timer[key] = pygame.time.get_ticks()
+                                if random.random() < self.infection_probability:
+                                    other.state = CellState.LATENT if random.random() < self.infection_prob_latent else CellState.INFECTED
 
     def draw(self, screen, background_color):
         screen.fill(background_color)

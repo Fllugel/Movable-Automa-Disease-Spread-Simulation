@@ -54,7 +54,7 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(QLabel("Cycles per Day"))
         param_layout.addWidget(self.cycles_per_day_input)
 
-        auto_stop_checkbox = QCheckBox("Stop when no infected")
+        auto_stop_checkbox = QCheckBox("No stop when no infected")
         auto_stop_checkbox.setFixedHeight(20)
         auto_stop_checkbox.stateChanged.connect(self.toggle_auto_stop)
         auto_stop_checkbox.setChecked(True)
@@ -102,8 +102,6 @@ class MainWindow(QMainWindow):
 
         main_widget.setLayout(layout)
         self.setCentralWidget(main_widget)
-
-    # main.py
 
     def start_simulation(self):
         cell_count = int(self.cell_count_input.text())

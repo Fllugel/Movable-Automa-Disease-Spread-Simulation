@@ -15,7 +15,7 @@ class GameWidget(QWidget):
         self.screen = pygame.Surface((600, 400))
         self.automaton = None
         self.is_paused = False
-        self.auto_stop_enabled = False
+        self.auto_stop_enabled = True
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.game_loop)
         self.timer.start(16)

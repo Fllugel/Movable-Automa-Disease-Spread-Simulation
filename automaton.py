@@ -14,9 +14,6 @@ BACKGROUND_LIGHT = (255, 255, 255)  # Світлий фон для гри
 
 MAX_SPEED = 2.0  # Максимальна швидкість для клітин
 SPEED_CHANGE_FACTOR = 0.01  # Коефіцієнт для плавної зміни швидкості
-LATENT_TO_ACTIVE_PROBABILITY = 0  # Ймовірність переходу з латентного в активний стан
-INFECTION_PROBABILITY_LATENT = 0.5  # Ймовірність, що зараження створить латентну клітину
-INFECTION_PROBABILITY_ACTIVE = 0.5  # Ймовірність, що зараження створить активну клітину
 
 class Cell:
     def __init__(self, x, y, speed, infected=False, size=3, latent=False):
@@ -62,21 +59,21 @@ class Cell:
             self.infected = True
             self.latent = True  # Спочатку клітина стає латентною
 
-    def update_infection(self, death_probability):
+    def update_infection(self, death_probability, latent_to_active_probability):
         if self.infected:
             if self.latent:
                 # Латентні клітини мають шанс стати активними
-                if random.random() < LATENT_TO_ACTIVE_PROBABILITY:
+                if random.random() < latent_to_active_probability:
                     self.latent = False  # Переходить в активний стан
             else:
                 # Активні клітини можуть вмирати з певною ймовірністю
                 if random.random() < death_probability:
                     self.dead = True
                     self.infected = False  # Завершуємо інфекцію
-                # Активна клітина залишається активною, якщо не помирає
 
 class Automaton:
-    def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size):
+    def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size,
+                 latent_to_active_prob, infection_prob_latent, infection_prob_active):
         self.width = width
         self.height = height
         self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed, size=cell_size) for _ in range(cell_count)]
@@ -88,7 +85,9 @@ class Automaton:
         self.infection_radius = infection_radius
         self.infection_period = infection_period
         self.death_probability = death_probability
-        self.radius_animation_phase = 0
+        self.latent_to_active_prob = latent_to_active_prob
+        self.infection_prob_latent = infection_prob_latent
+        self.infection_prob_active = infection_prob_active
         self.radius_to_draw = []  # Список для клітин, де малюємо радіус
         self.infection_check_timer = defaultdict(lambda: -float('inf'))  # Таймер для перевірок інфікування
         self.running = True  # Статус симуляції
@@ -102,7 +101,7 @@ class Automaton:
         for cell in self.cells:
             cell.move(self.width, self.height)
             if cell.infected:
-                cell.update_infection(self.death_probability)
+                cell.update_infection(self.death_probability, self.latent_to_active_prob)
                 if cell.dead:
                     self.daily_statistics["dead"] += 1
 
@@ -122,10 +121,8 @@ class Automaton:
                                 if random.random() < self.infection_probability:
                                     # Зараження як латентне або активне
                                     other.infected = True
-                                    other.latent = random.random() < INFECTION_PROBABILITY_LATENT
-                                    if other.latent:
-                                        self.daily_statistics["infected"] += 1
-                                    elif random.random() < INFECTION_PROBABILITY_ACTIVE:
+                                    other.latent = random.random() < self.infection_prob_latent
+                                    if not other.latent and random.random() < self.infection_prob_active:
                                         other.latent = False  # Стає активним одразу
 
     def draw(self, screen, background_color):

@@ -22,7 +22,7 @@ class GameWidget(QWidget):
         self.timer.start(16)
 
         # Daily statistics labels
-        self.stats_label = QLabel("Infected: 0\n\nLatent: 0\nRecovered: 0\nDead: 0", self)
+        self.stats_label = QLabel("Infected: 0\nLatent: 0\nRecovered: 0\nDead: 0", self)
         self.stats_label.move(620, 0)  # Positioning on the right side of the screen
 
         self.figure, self.ax = plt.subplots()
@@ -62,9 +62,11 @@ class GameWidget(QWidget):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
     def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius,
-                         infection_period_cycles, death_probability, cell_size, cycles_per_day):
+                         infection_period_cycles, death_probability, cell_size, cycles_per_day,
+                         latent_to_active_prob, infection_prob_latent, infection_prob_active):
         self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability,
-                                   infection_radius, infection_period_cycles, death_probability, cell_size)
+                                   infection_radius, infection_period_cycles, death_probability, cell_size,
+                                   latent_to_active_prob, infection_prob_latent, infection_prob_active)
         self.time_data.clear()
         self.healthy_data.clear()
         self.latent_data.clear()

@@ -26,11 +26,11 @@ class MainWindow(QMainWindow):
 
         self.cell_count_input = QLineEdit("500")
         self.infected_count_input = QLineEdit("10")
-        self.cell_speed_input = QLineEdit("0.8")
-        self.infection_probability_input = QLineEdit("0.5")
+        self.cell_speed_input = QLineEdit("0.5")
+        self.infection_probability_input = QLineEdit("0.25")
         self.infection_radius_input = QLineEdit("10")
         self.infection_period_input = QLineEdit("150")
-        self.death_probability_input = QLineEdit("0.08")
+        self.death_probability_input = QLineEdit("0")
         self.cell_size_input = QLineEdit("3")
 
         param_layout.addWidget(QLabel("Cell Count"))
@@ -49,6 +49,10 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(self.death_probability_input)
         param_layout.addWidget(QLabel("Cell Size"))
         param_layout.addWidget(self.cell_size_input)
+
+        self.cycles_per_day_input = QLineEdit("10")  # Default value for cycles per day
+        param_layout.addWidget(QLabel("Cycles per Day"))
+        param_layout.addWidget(self.cycles_per_day_input)
 
         auto_stop_checkbox = QCheckBox("Stop when no infected")
         auto_stop_checkbox.setFixedHeight(20)
@@ -98,18 +102,24 @@ class MainWindow(QMainWindow):
         main_widget.setLayout(layout)
         self.setCentralWidget(main_widget)
 
+    # main.py
+
     def start_simulation(self):
         cell_count = int(self.cell_count_input.text())
         infected_count = int(self.infected_count_input.text())
         cell_speed = float(self.cell_speed_input.text())
         infection_probability = float(self.infection_probability_input.text())
         infection_radius = int(self.infection_radius_input.text())
-        infection_period = int(self.infection_period_input.text())
+        infection_period_days = int(self.infection_period_input.text())
         death_probability = float(self.death_probability_input.text())
         cell_size = int(self.cell_size_input.text())
+        cycles_per_day = int(self.cycles_per_day_input.text())
+
+        infection_period_cycles = infection_period_days * cycles_per_day  # Convert days to cycles
 
         self.game_widget.start_simulation(cell_count, infected_count, cell_speed, infection_probability,
-                                          infection_radius, infection_period, death_probability, cell_size)
+                                          infection_radius, infection_period_cycles, death_probability, cell_size,
+                                          cycles_per_day)
 
     def pause_simulation(self):
         self.game_widget.toggle_pause()

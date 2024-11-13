@@ -61,9 +61,9 @@ class GameWidget(QWidget):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
     def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius,
-                         infection_period, death_probability, cell_size):
+                         infection_period_cycles, death_probability, cell_size, cycles_per_day):
         self.automaton = Automaton(600, 400, cell_count, infected_count, cell_speed, infection_probability,
-                                   infection_radius, infection_period, death_probability, cell_size)
+                                   infection_radius, infection_period_cycles, death_probability, cell_size)
         self.time_data.clear()
         self.healthy_data.clear()
         self.infected_data.clear()
@@ -72,21 +72,25 @@ class GameWidget(QWidget):
         self.time_step = 0
         self.cycle_counter = 0  # Reset cycle counter
         self.current_day = 1  # Reset the day counter
+        self.cycles_per_day = cycles_per_day  # Set cycles per day
 
     def game_loop(self):
         if self.automaton:
             if not self.is_paused:
                 self.automaton.update()
-                self.update_statistics()
+                self.cycle_counter += 1
+                if self.cycle_counter >= self.cycles_per_day:
+                    self.cycle_counter = 0
+                    self.current_day += 1
+                    self.update_statistics()
             self.automaton.draw(self.screen, BACKGROUND_DARK)
             self.repaint()
             if self.auto_stop_enabled:
                 self.automaton.stop_if_no_infected()
 
     def update_statistics(self):
-        self.time_step += 1
         healthy, infected, recovered, dead = self.automaton.get_statistics()
-        self.time_data.append(self.time_step)
+        self.time_data.append(self.current_day)
         self.healthy_data.append(healthy)
         self.infected_data.append(infected)
         self.recovered_data.append(recovered)

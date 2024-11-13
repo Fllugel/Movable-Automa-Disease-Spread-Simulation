@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
         self.cell_speed_input = QLineEdit("0.5")
         self.infection_probability_input = QLineEdit("0.25")
         self.infection_radius_input = QLineEdit("10")
-        self.infection_period_input = QLineEdit("150")
+        self.infection_period_input = QLineEdit("30")
         self.death_probability_input = QLineEdit("0")
         self.cell_size_input = QLineEdit("3")
 

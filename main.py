@@ -81,7 +81,7 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(save_button)
 
         # Daily statistics label
-        self.daily_stats_label = QLabel("Infected: 0\nRecovered: 0\nDead: 0")
+        self.daily_stats_label = QLabel("Infected: 0\nLatent: 0\nRecovered: 0\nDead: 0")
         param_layout.addWidget(self.daily_stats_label)
 
         param_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))

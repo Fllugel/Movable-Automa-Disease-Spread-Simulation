@@ -14,9 +14,9 @@ BACKGROUND_LIGHT = (255, 255, 255)  # Світлий фон для гри
 
 MAX_SPEED = 2.0  # Максимальна швидкість для клітин
 SPEED_CHANGE_FACTOR = 0.01  # Коефіцієнт для плавної зміни швидкості
-LATENT_TO_ACTIVE_PROBABILITY = 0.02 / 200  # Ймовірність переходу з латентного в активний стан
-INFECTION_PROBABILITY_LATENT = 0.9  # Ймовірність, що зараження створить латентну клітину
-INFECTION_PROBABILITY_ACTIVE = 0.1  # Ймовірність, що зараження створить активну клітину
+LATENT_TO_ACTIVE_PROBABILITY = 0  # Ймовірність переходу з латентного в активний стан
+INFECTION_PROBABILITY_LATENT = 0.5  # Ймовірність, що зараження створить латентну клітину
+INFECTION_PROBABILITY_ACTIVE = 0.5  # Ймовірність, що зараження створить активну клітину
 
 class Cell:
     def __init__(self, x, y, speed, infected=False, size=3, latent=False):
@@ -150,9 +150,10 @@ class Automaton:
     def get_statistics(self):
         healthy = len([c for c in self.cells if not c.infected and not c.recovered and not c.dead])
         infected = len([c for c in self.cells if c.infected])
+        latent = len([c for c in self.cells if c.latent])
         recovered = len([c for c in self.cells if c.recovered])
         dead = len([c for c in self.cells if c.dead])
-        return healthy, infected, recovered, dead
+        return healthy, infected, latent, recovered, dead
 
     def reset_daily_statistics(self):
         daily_stats = self.daily_statistics.copy()

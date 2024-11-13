@@ -3,8 +3,8 @@ import pygame
 import math
 from collections import defaultdict
 
-WHITE = (127, 179, 213)  # Здоровий (блакитний)
-GREEN = (66, 66, 66)     # Видужав (темно-сірий)
+BLUE = (127, 179, 213)  # Здоровий (блакитний)
+GRAY = (66, 66, 66)     # Видужав (темно-сірий)
 RED = (241, 148, 138)    # Заражений (червоний)
 BLACK = (0, 0, 0)        # Помер (чорний)
 BACKGROUND_DARK = (0, 0, 0)  # Темний фон для гри
@@ -116,11 +116,11 @@ class Automaton:
             if cell.dead:
                 color = BLACK
             elif cell.recovered:
-                color = GREEN
+                color = GRAY
             elif cell.infected:
                 color = RED
             else:
-                color = WHITE
+                color = BLUE
             pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), cell.size)
 
         surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)

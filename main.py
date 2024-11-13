@@ -1,3 +1,4 @@
+
 import sys
 from PyQt5.QtWidgets import (QApplication, QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout,
                              QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem,
@@ -24,6 +25,7 @@ class MainWindow(QMainWindow):
         param_layout = QVBoxLayout()
         param_layout.setSpacing(3)
 
+        # Existing parameter inputs
         self.cell_count_input = QLineEdit("500")
         self.infected_count_input = QLineEdit("10")
         self.cell_speed_input = QLineEdit("0.5")
@@ -33,6 +35,7 @@ class MainWindow(QMainWindow):
         self.death_probability_input = QLineEdit("0")
         self.cell_size_input = QLineEdit("3")
 
+        # Adding existing fields to layout
         param_layout.addWidget(QLabel("Cell Count"))
         param_layout.addWidget(self.cell_count_input)
         param_layout.addWidget(QLabel("Infected Count"))
@@ -50,15 +53,30 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(QLabel("Cell Size"))
         param_layout.addWidget(self.cell_size_input)
 
-        self.cycles_per_day_input = QLineEdit("10")  # Default value for cycles per day
+        # New parameter inputs for probabilities
+        self.latent_to_active_probability_input = QLineEdit("0")  # Default value
+        self.infection_probability_latent_input = QLineEdit("0.5")  # Default value
+        self.infection_probability_active_input = QLineEdit("0.5")  # Default value
+
+        # Adding new fields to layout
         param_layout.addWidget(QLabel("Cycles per Day"))
+        self.cycles_per_day_input = QLineEdit("10")  # Default value for cycles per day
         param_layout.addWidget(self.cycles_per_day_input)
 
+        param_layout.addWidget(QLabel("Latent to Active Probability"))
+        param_layout.addWidget(self.latent_to_active_probability_input)
+        param_layout.addWidget(QLabel("Infection Probability (Latent)"))
+        param_layout.addWidget(self.infection_probability_latent_input)
+        param_layout.addWidget(QLabel("Infection Probability (Active)"))
+        param_layout.addWidget(self.infection_probability_active_input)
+
+        # Additional controls
         auto_stop_checkbox = QCheckBox("No stop when no infected")
         auto_stop_checkbox.setFixedHeight(20)
         auto_stop_checkbox.stateChanged.connect(self.toggle_auto_stop)
         param_layout.addWidget(auto_stop_checkbox)
 
+        # Buttons
         start_button = QPushButton("Start/Restart")
         start_button.setFixedHeight(30)
         start_button.clicked.connect(self.start_simulation)
@@ -113,11 +131,16 @@ class MainWindow(QMainWindow):
         cell_size = int(self.cell_size_input.text())
         cycles_per_day = int(self.cycles_per_day_input.text())
 
+        # New parameters
+        latent_to_active_prob = float(self.latent_to_active_probability_input.text())
+        infection_prob_latent = float(self.infection_probability_latent_input.text())
+        infection_prob_active = float(self.infection_probability_active_input.text())
+
         infection_period_cycles = infection_period_days * cycles_per_day  # Convert days to cycles
 
         self.game_widget.start_simulation(cell_count, infected_count, cell_speed, infection_probability,
                                           infection_radius, infection_period_cycles, death_probability, cell_size,
-                                          cycles_per_day)
+                                          cycles_per_day, latent_to_active_prob, infection_prob_latent, infection_prob_active)
 
     def pause_simulation(self):
         self.game_widget.toggle_pause()

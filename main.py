@@ -57,7 +57,6 @@ class MainWindow(QMainWindow):
         auto_stop_checkbox = QCheckBox("No stop when no infected")
         auto_stop_checkbox.setFixedHeight(20)
         auto_stop_checkbox.stateChanged.connect(self.toggle_auto_stop)
-        auto_stop_checkbox.setChecked(True)
         param_layout.addWidget(auto_stop_checkbox)
 
         start_button = QPushButton("Start/Restart")

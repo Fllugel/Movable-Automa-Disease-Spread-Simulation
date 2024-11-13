@@ -82,7 +82,8 @@ class GameWidget(QWidget):
                 if self.cycle_counter >= self.cycles_per_day:
                     self.cycle_counter = 0
                     self.current_day += 1
-                    self.update_statistics()
+                    if self.automaton.running:
+                        self.update_statistics()
             self.automaton.draw(self.screen, BACKGROUND_DARK)
             self.repaint()
             if self.auto_stop_enabled:

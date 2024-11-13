@@ -2,7 +2,7 @@ import pygame
 from PyQt5.QtWidgets import QWidget, QLabel
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPainter, QImage
-from automaton import Automaton, BACKGROUND_DARK
+from automaton import Automaton, BACKGROUND_DARK, BLUE, GRAY, LATENT_RED, ACTIVE_RED, BLACK
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -55,7 +55,6 @@ class GameWidget(QWidget):
 
     def toggle_pause(self):
         self.is_paused = not self.is_paused
-        # self.automaton.running = not self.is_paused
 
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled

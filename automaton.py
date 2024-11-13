@@ -1,3 +1,4 @@
+
 import random
 import pygame
 import math
@@ -5,21 +6,26 @@ from collections import defaultdict
 
 BLUE = (127, 179, 213)  # Здоровий (блакитний)
 GRAY = (66, 66, 66)     # Видужав (темно-сірий)
-RED = (241, 148, 138)    # Заражений (червоний)
+LATENT_RED = (255, 100, 100)  # Колір для латентної форми хвороби
+ACTIVE_RED = (255, 0, 0)      # Яскравіший червоний для активної форми
 BLACK = (0, 0, 0)        # Помер (чорний)
 BACKGROUND_DARK = (0, 0, 0)  # Темний фон для гри
 BACKGROUND_LIGHT = (255, 255, 255)  # Світлий фон для гри
 
 MAX_SPEED = 2.0  # Максимальна швидкість для клітин
 SPEED_CHANGE_FACTOR = 0.01  # Коефіцієнт для плавної зміни швидкості
+LATENT_TO_ACTIVE_PROBABILITY = 0.02 / 200  # Ймовірність переходу з латентного в активний стан
+INFECTION_PROBABILITY_LATENT = 0.9  # Ймовірність, що зараження створить латентну клітину
+INFECTION_PROBABILITY_ACTIVE = 0.1  # Ймовірність, що зараження створить активну клітину
 
 class Cell:
-    def __init__(self, x, y, speed, infected=False, size=3):
+    def __init__(self, x, y, speed, infected=False, size=3, latent=False):
         self.x = x
         self.y = y
         self.speed_x = random.uniform(-speed, speed)
         self.speed_y = random.uniform(-speed, speed)
         self.infected = infected
+        self.latent = latent
         self.infection_time = 0
         self.recovered = False
         self.dead = False
@@ -51,15 +57,23 @@ class Cell:
         self.x = max(0, min(self.x, width))
         self.y = max(0, min(self.y, height))
 
-    def update_infection(self, infection_period, death_probability):
+    def infect(self):
+        if not self.infected and not self.latent:
+            self.infected = True
+            self.latent = True  # Спочатку клітина стає латентною
+
+    def update_infection(self, death_probability):
         if self.infected:
-            self.infection_time += 1
-            if self.infection_time >= infection_period:
+            if self.latent:
+                # Латентні клітини мають шанс стати активними
+                if random.random() < LATENT_TO_ACTIVE_PROBABILITY:
+                    self.latent = False  # Переходить в активний стан
+            else:
+                # Активні клітини можуть вмирати з певною ймовірністю
                 if random.random() < death_probability:
                     self.dead = True
-                else:
-                    self.recovered = True
-                self.infected = False  # Завершуємо інфекцію
+                    self.infected = False  # Завершуємо інфекцію
+                # Активна клітина залишається активною, якщо не помирає
 
 class Automaton:
     def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size):
@@ -67,7 +81,8 @@ class Automaton:
         self.height = height
         self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed, size=cell_size) for _ in range(cell_count)]
         for i in range(infected_count):
-            self.cells[i].infected = True
+            self.cells[i].infected = True  # Initialize the first infected as active
+            self.cells[i].latent = False
 
         self.infection_probability = infection_probability
         self.infection_radius = infection_radius
@@ -87,17 +102,15 @@ class Automaton:
         for cell in self.cells:
             cell.move(self.width, self.height)
             if cell.infected:
-                cell.update_infection(self.infection_period, self.death_probability)
+                cell.update_infection(self.death_probability)
                 if cell.dead:
                     self.daily_statistics["dead"] += 1
-                elif cell.recovered:
-                    self.daily_statistics["recovered"] += 1
 
         self.infect()
 
     def infect(self):
         for cell in self.cells:
-            if cell.infected:
+            if cell.infected and not cell.latent:  # Тільки активні клітини можуть заражати
                 for other in self.cells:
                     if not other.infected and not other.recovered and not other.dead:
                         dist = math.hypot(cell.x - other.x, cell.y - other.y)
@@ -107,8 +120,13 @@ class Automaton:
                                 self.radius_to_draw.append(cell)
                                 self.infection_check_timer[key] = pygame.time.get_ticks()
                                 if random.random() < self.infection_probability:
+                                    # Зараження як латентне або активне
                                     other.infected = True
-                                    self.daily_statistics["infected"] += 1
+                                    other.latent = random.random() < INFECTION_PROBABILITY_LATENT
+                                    if other.latent:
+                                        self.daily_statistics["infected"] += 1
+                                    elif random.random() < INFECTION_PROBABILITY_ACTIVE:
+                                        other.latent = False  # Стає активним одразу
 
     def draw(self, screen, background_color):
         screen.fill(background_color)
@@ -118,7 +136,7 @@ class Automaton:
             elif cell.recovered:
                 color = GRAY
             elif cell.infected:
-                color = RED
+                color = LATENT_RED if cell.latent else ACTIVE_RED
             else:
                 color = BLUE
             pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), cell.size)

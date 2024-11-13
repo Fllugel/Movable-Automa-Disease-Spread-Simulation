@@ -83,7 +83,6 @@ class Automaton:
         if not self.running:
             return
 
-        self.radius_animation_phase = (self.radius_animation_phase + 1) % 120
         self.radius_to_draw.clear()
         for cell in self.cells:
             cell.move(self.width, self.height)
@@ -126,11 +125,8 @@ class Automaton:
 
         surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
         for cell in self.radius_to_draw:
-            opacity = max(0, 80 - math.sin(self.radius_animation_phase / 60 * math.pi) * 80)
-            animated_radius = self.infection_radius + math.sin(self.radius_animation_phase / 60 * math.pi) * 10
             color_with_opacity = (241, 148, 138)
-            pygame.draw.circle(surface, color_with_opacity, (int(cell.x), int(cell.y)), int(animated_radius), 1)
-            surface.set_alpha(int(opacity))
+            pygame.draw.circle(surface, color_with_opacity, (int(cell.x), int(cell.y)), int(self.infection_radius), 1)
         screen.blit(surface, (0, 0))
 
     def get_statistics(self):

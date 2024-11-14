@@ -5,7 +5,7 @@ from cell import Cell
 from cell_state import CellState
 
 BLUE = (127, 179, 213)
-ORANGE = (255, 190, 125)
+PURPLE = (255, 140, 255)
 PINK = (255, 100, 100)
 BLACK = (0, 0, 0)
 BACKGROUND_DARK = (0, 0, 0)
@@ -43,13 +43,16 @@ class Automaton:
 
         for cell in self.cells:
             cell.move(self.width, self.height)
-            if cell.state in [CellState.LATENT, CellState.INFECTED]:
-                cell.update_infection(self.death_probability, self.latent_to_active_prob)
 
         self.update_counter += 1
         if self.update_counter >= 1 / self.infection_checks_per_day:
             self.check_if_can_infect()
+            self.check_infected()
             self.update_counter = 0
+
+    def check_infected(self):
+        for cell in self.cells:
+            cell.update_infection(self.death_probability, self.latent_to_active_prob)
 
     def check_if_can_infect(self):
         for cell in self.cells:
@@ -81,7 +84,7 @@ class Automaton:
             if cell.state == CellState.DEAD:
                 color = BLACK
             elif cell.state == CellState.LATENT:
-                color = ORANGE
+                color = PURPLE
             elif cell.state == CellState.INFECTED:
                 color = PINK
             else:

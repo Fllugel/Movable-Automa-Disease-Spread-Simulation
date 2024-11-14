@@ -27,7 +27,7 @@ class MainWindow(QMainWindow):
 
         # Existing parameter inputs
         self.cell_count_input = QLineEdit("500")
-        self.infected_count_input = QLineEdit("10")
+        self.infected_count_input = QLineEdit("1")
         self.cell_speed_input = QLineEdit("0.5")
         self.infection_probability_input = QLineEdit("0.25")
         self.infection_radius_input = QLineEdit("10")
@@ -55,8 +55,8 @@ class MainWindow(QMainWindow):
 
         # New parameter inputs for probabilities
         self.latent_to_active_probability_input = QLineEdit("0")  # Default value
-        self.infection_probability_latent_input = QLineEdit("0.5")  # Default value
-        self.infection_probability_active_input = QLineEdit("0.5")  # Default value
+        self.infection_probability_latent_input = QLineEdit("0.05")  # Default value
+        self.infection_probability_active_input = QLineEdit("0.1")  # Default value
 
         # Adding new fields to layout
         param_layout.addWidget(QLabel("Cycles per Day"))

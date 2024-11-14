@@ -5,7 +5,7 @@ from cell import Cell
 from cell_state import CellState
 
 BLUE = (127, 179, 213)
-GRAY = (211, 211, 211)
+GRAY = (150, 0, 150)
 PINK = (255, 100, 100)
 BLACK = (0, 0, 0)
 BACKGROUND_DARK = (0, 0, 0)
@@ -31,7 +31,7 @@ class Automaton:
         self.infection_prob_healthy = infection_prob_healthy
         self.daily_statistics = {"infected": 0, "dead": 0}
         self.current_day = 0
-        self.infection_checks_per_day = 5
+        self.infection_checks_per_day = 0.1
 
     def update(self):
         if not self.running:
@@ -47,9 +47,9 @@ class Automaton:
 
     def check_if_can_infect(self):
         for cell in self.cells:
-            if cell.state in [CellState.INFECTED, CellState.LATENT]:
+            if cell.state in [CellState.INFECTED]:
                 for other_cell in self.cells:
-                    if other_cell.state == CellState.HEALTHY:
+                    if other_cell.state == (CellState.HEALTHY or other_cell.state == CellState.LATENT):
                         distance = ((cell.x - other_cell.x) ** 2 + (cell.y - other_cell.y) ** 2) ** 0.5
                         if distance <= self.infection_radius:
                             self.infect(other_cell)

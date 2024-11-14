@@ -22,7 +22,7 @@ class GameWidget(QWidget):
         self.timer.start(16)
 
         # Daily statistics labels
-        self.stats_label = QLabel("Infected: 0\nLatent: 0\nRecovered: 0\nDead: 0", self)
+        self.stats_label = QLabel("Infected: 0\nLatent: 0\nDead: 0", self)
         self.stats_label.move(620, 0)  # Positioning on the right side of the screen
 
         self.figure, self.ax = plt.subplots()
@@ -37,7 +37,6 @@ class GameWidget(QWidget):
         self.healthy_data = []
         self.latent_data = []
         self.infected_data = []
-        self.recovered_data = []
         self.dead_data = []
         self.time_step = 0
         self.cycles_per_day = 200  # Number of cycles representing a day
@@ -71,7 +70,6 @@ class GameWidget(QWidget):
         self.healthy_data.clear()
         self.latent_data.clear()
         self.infected_data.clear()
-        self.recovered_data.clear()
         self.dead_data.clear()
         self.time_step = 0
         self.cycle_counter = 0  # Reset cycle counter
@@ -94,16 +92,15 @@ class GameWidget(QWidget):
                 self.automaton.stop_if_no_infected()
 
     def update_statistics(self):
-        healthy, infected, latent, recovered, dead = self.automaton.get_statistics()
+        healthy, infected, latent, dead = self.automaton.get_statistics()
         self.time_data.append(self.current_day)
         self.healthy_data.append(healthy)
         self.latent_data.append(latent)
         self.infected_data.append(infected)
-        self.recovered_data.append(recovered)
         self.dead_data.append(dead)
 
         self.daily_stats_label.setText(
-            f"Infected: {infected}\nLatent: {latent}\nRecovered: {recovered}\nDead: {dead}"
+            f"Infected: {infected}\nLatent: {latent}\nDead: {dead}"
         )
 
         self.update_plot()
@@ -118,23 +115,22 @@ class GameWidget(QWidget):
         self.ax.clear()
         self.set_plot_background()
 
-        total_population = max([h + l + i + r + d for h, l, i, r, d in
-                                zip(self.healthy_data, self.latent_data, self.infected_data, self.recovered_data, self.dead_data)],
+        total_population = max([h + l + i + d for h, l, i, d in
+                                zip(self.healthy_data, self.latent_data, self.infected_data, self.dead_data)],
                                default=0)
         if total_population == 0:
             total_population = len(self.healthy_data)
 
         latent_infected = [l + i for l, i in zip(self.latent_data, self.infected_data)]
-        dead_recovered_latent_infected = [l + i + r + d for l, i, r, d in zip(self.latent_data, self.infected_data, self.recovered_data, self.dead_data)]
+        dead_latent_infected = [l + i + d for l, i, d in zip(self.latent_data, self.infected_data, self.dead_data)]
 
         self.ax.fill_between(self.time_data, 0, self.latent_data, color='#FFCCCB', label='Latent')
         self.ax.fill_between(self.time_data, self.latent_data, latent_infected, color='#F1948A', label='Infectious')
-        self.ax.fill_between(self.time_data, latent_infected, dead_recovered_latent_infected, color='#424949', label='Recovered')
-        self.ax.fill_between(self.time_data, dead_recovered_latent_infected, [total_population] * len(dead_recovered_latent_infected), color='black', label='Dead')
+        self.ax.fill_between(self.time_data, dead_latent_infected, [total_population] * len(dead_latent_infected), color='black', label='Dead')
 
-        if total_population - max(dead_recovered_latent_infected) > 0:
-            self.ax.fill_between(self.time_data, dead_recovered_latent_infected,
-                                 [total_population] * len(dead_recovered_latent_infected), color='#7FB3D5',
+        if total_population - max(dead_latent_infected) > 0:
+            self.ax.fill_between(self.time_data, dead_latent_infected,
+                                 [total_population] * len(dead_latent_infected), color='#7FB3D5',
                                  label='Susceptible')
 
         legend = self.ax.legend(loc='upper left', facecolor='#253D47', edgecolor='white')

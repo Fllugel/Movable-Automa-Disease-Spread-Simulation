@@ -3,7 +3,6 @@ from cell_state import CellState
 
 MAX_SPEED = 2.0
 SPEED_CHANGE_FACTOR = 0.01
-LATENT_TO_ACTIVE_PROBABILITY = 0
 
 class Cell:
     def __init__(self, x, y, speed, size=3):
@@ -41,9 +40,9 @@ class Cell:
         if self.state == CellState.HEALTHY:
             self.state = CellState.LATENT
 
-    def update_infection(self, death_probability):
+    def update_infection(self, death_probability, latent_to_active_probability):
         if self.state == CellState.LATENT:
-            if random.random() < LATENT_TO_ACTIVE_PROBABILITY:
+            if random.random() < latent_to_active_probability:
                 self.state = CellState.INFECTED
         elif self.state == CellState.INFECTED:
             if random.random() < death_probability:

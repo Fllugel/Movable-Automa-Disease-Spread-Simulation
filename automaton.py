@@ -44,10 +44,20 @@ class Automaton:
                 cell.update_infection(self.death_probability, self.latent_to_active_prob)
 
 
-        self.infect()
+        self.check_if_can_infect()
 
-    def infect(self):
-        print()
+    def check_if_can_infect(self):
+        for cell in self.cells:
+            if cell.state in [CellState.INFECTED, CellState.LATENT]:
+                for other_cell in self.cells:
+                    if other_cell.state == CellState.HEALTHY:
+                        distance = ((cell.x - other_cell.x) ** 2 + (cell.y - other_cell.y) ** 2) ** 0.5
+                        if distance <= self.infection_radius:
+                            self.infect(other_cell)
+
+    def infect(self, other_cell):
+        if random.random() < self.infection_probability:
+            other_cell.state = CellState.INFECTED
 
     def draw(self, screen, background_color):
         screen.fill(background_color)

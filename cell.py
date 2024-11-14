@@ -36,10 +36,6 @@ class Cell:
         self.x = max(0, min(self.x, width))
         self.y = max(0, min(self.y, height))
 
-    def infect(self):
-        if self.state == CellState.HEALTHY:
-            self.state = CellState.LATENT
-
     def update_infection(self, death_probability, latent_to_active_probability):
         if self.state == CellState.LATENT:
             if random.random() < latent_to_active_probability:

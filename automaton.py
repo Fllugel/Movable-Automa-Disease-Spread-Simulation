@@ -5,20 +5,21 @@ from cell import Cell
 from cell_state import CellState
 
 BLUE = (127, 179, 213)
-GRAY = (150, 0, 150)
+ORANGE = (255, 190, 125)
 PINK = (255, 100, 100)
 BLACK = (0, 0, 0)
 BACKGROUND_DARK = (0, 0, 0)
 BACKGROUND_LIGHT = (255, 255, 255)
 
 class Automaton:
-    def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size,
-                 latent_to_active_prob, infection_prob_latent, infection_prob_healthy):
+    def __init__(self, width, height, cell_count, infected_count, latent_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size, latent_to_active_prob, infection_prob_latent, infection_prob_healthy):
         self.width = width
         self.height = height
         self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed, size=cell_size) for _ in range(cell_count)]
         for i in range(infected_count):
             self.cells[i].state = CellState.INFECTED
+        for i in range(round(cell_count * latent_count)):
+            self.cells[i + infected_count].state = CellState.LATENT
 
         self.infection_probability = infection_probability
         self.infection_radius = infection_radius
@@ -80,7 +81,7 @@ class Automaton:
             if cell.state == CellState.DEAD:
                 color = BLACK
             elif cell.state == CellState.LATENT:
-                color = GRAY
+                color = ORANGE
             elif cell.state == CellState.INFECTED:
                 color = PINK
             else:

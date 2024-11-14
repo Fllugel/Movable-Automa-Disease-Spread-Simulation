@@ -126,7 +126,7 @@ class GameWidget(QWidget):
         latent_infected = [l + i for l, i in zip(self.latent_data, self.infected_data)]
         dead_latent_infected = [l + i + d for l, i, d in zip(self.latent_data, self.infected_data, self.dead_data)]
 
-        self.ax.fill_between(self.time_data, 0, self.latent_data, color='#FFB464', label='Latent')
+        self.ax.fill_between(self.time_data, 0, self.latent_data, color='#F0C0F0', label='Latent')
         self.ax.fill_between(self.time_data, self.latent_data, latent_infected, color='#F1948A', label='Infectious')
         self.ax.fill_between(self.time_data, dead_latent_infected, [total_population] * len(dead_latent_infected), color='black', label='Dead')
 

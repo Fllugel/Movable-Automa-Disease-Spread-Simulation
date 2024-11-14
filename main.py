@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         # Existing parameter inputs
         self.cell_count_input = QLineEdit("500")
         self.infected_count_input = QLineEdit("1")
-        self.latent_count_input = QLineEdit("0.05")
+        self.latent_count_input = QLineEdit("0.25")
         self.cell_speed_input = QLineEdit("0.5")
         self.infection_probability_input = QLineEdit("0.25")
         self.infection_radius_input = QLineEdit("10")

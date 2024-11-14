@@ -28,6 +28,7 @@ class MainWindow(QMainWindow):
         # Existing parameter inputs
         self.cell_count_input = QLineEdit("500")
         self.infected_count_input = QLineEdit("1")
+        self.latent_count_input = QLineEdit("0.05")
         self.cell_speed_input = QLineEdit("0.5")
         self.infection_probability_input = QLineEdit("0.25")
         self.infection_radius_input = QLineEdit("10")
@@ -40,6 +41,8 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(self.cell_count_input)
         param_layout.addWidget(QLabel("Infected Count"))
         param_layout.addWidget(self.infected_count_input)
+        param_layout.addWidget(QLabel("Latent Count"))
+        param_layout.addWidget(self.latent_count_input)
         param_layout.addWidget(QLabel("Cell Speed"))
         param_layout.addWidget(self.cell_speed_input)
         param_layout.addWidget(QLabel("Infection Probability"))
@@ -123,6 +126,7 @@ class MainWindow(QMainWindow):
     def start_simulation(self):
         cell_count = int(self.cell_count_input.text())
         infected_count = int(self.infected_count_input.text())
+        latent_count = float(self.latent_count_input.text())
         cell_speed = float(self.cell_speed_input.text())
         infection_probability = float(self.infection_probability_input.text())
         infection_radius = int(self.infection_radius_input.text())
@@ -138,7 +142,7 @@ class MainWindow(QMainWindow):
 
         infection_period_cycles = infection_period_days * cycles_per_day  # Convert days to cycles
 
-        self.game_widget.start_simulation(cell_count, infected_count, cell_speed, infection_probability,
+        self.game_widget.start_simulation(cell_count, infected_count, latent_count, cell_speed, infection_probability,
                                           infection_radius, infection_period_cycles, death_probability, cell_size,
                                           cycles_per_day, latent_to_active_prob, infection_prob_latent, infection_prob_active)
 

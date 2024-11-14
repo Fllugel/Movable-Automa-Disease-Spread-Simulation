@@ -81,11 +81,10 @@ class GameWidget(QWidget):
             if not self.is_paused:
                 self.automaton.update()
                 self.cycle_counter += 1
-                if self.cycle_counter >= self.cycles_per_day:
-                    self.cycle_counter = 0
-                    self.current_day += 1
-                    if self.automaton.running:
-                        self.update_statistics()
+                self.current_day = self.cycle_counter / self.cycles_per_day
+                if self.automaton.running:
+                    self.automaton.current_day = self.current_day
+                    self.update_statistics()
             self.automaton.draw(self.screen, BACKGROUND_DARK)
             self.repaint()
             if self.auto_stop_enabled:

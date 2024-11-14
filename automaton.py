@@ -13,7 +13,7 @@ BACKGROUND_LIGHT = (255, 255, 255)
 
 class Automaton:
     def __init__(self, width, height, cell_count, infected_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size,
-                 latent_to_active_prob, infection_prob_latent, infection_prob_active):
+                 latent_to_active_prob, infection_prob_latent, infection_prob_healthy):
         self.width = width
         self.height = height
         self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed, size=cell_size) for _ in range(cell_count)]
@@ -28,10 +28,10 @@ class Automaton:
         self.running = True
         self.latent_to_active_prob = latent_to_active_prob
         self.infection_prob_latent = infection_prob_latent
-        self.infection_prob_active = infection_prob_active
-        self.infection_check_timer = defaultdict(lambda: -float('inf'))
-        self.running = True
+        self.infection_prob_healthy = infection_prob_healthy
         self.daily_statistics = {"infected": 0, "dead": 0}
+        self.current_day = 0
+        self.infection_checks_per_day = 5
 
     def update(self):
         if not self.running:
@@ -42,8 +42,8 @@ class Automaton:
             if cell.state in [CellState.LATENT, CellState.INFECTED]:
                 cell.update_infection(self.death_probability, self.latent_to_active_prob)
 
-
-        self.check_if_can_infect()
+        if (self.current_day * self.infection_checks_per_day) % 1 == 0:
+            self.check_if_can_infect()
 
     def check_if_can_infect(self):
         for cell in self.cells:
@@ -56,7 +56,17 @@ class Automaton:
 
     def infect(self, other_cell):
         if random.random() < self.infection_probability:
-            other_cell.state = CellState.INFECTED
+            if other_cell.state == CellState.HEALTHY:
+                infection_probability = self.infection_prob_healthy
+            elif other_cell.state == CellState.LATENT:
+                infection_probability = self.infection_prob_latent
+            else:
+                return
+
+            if random.random() < infection_probability:
+                other_cell.state = CellState.INFECTED
+            else:
+                other_cell.state = CellState.LATENT
 
     def draw(self, screen, background_color):
         screen.fill(background_color)

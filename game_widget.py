@@ -60,6 +60,9 @@ class GameWidget(QWidget):
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
+    def toggle_radii(self):
+        self.automaton.show_radius = not self.automaton.show_radius
+
     def start_simulation(self, cell_count, infected_count, cell_speed, infection_probability, infection_radius,
                          infection_period_cycles, death_probability, cell_size, cycles_per_day,
                          latent_to_active_prob, infection_prob_latent, infection_prob_active):

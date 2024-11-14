@@ -31,7 +31,10 @@ class Automaton:
         self.infection_prob_healthy = infection_prob_healthy
         self.daily_statistics = {"infected": 0, "dead": 0}
         self.current_day = 0
-        self.infection_checks_per_day = 0.1
+        self.infection_checks_per_day = 0.05
+        self.infection_radii = []
+        self.show_radius = True
+        self.update_counter = 0
 
     def update(self):
         if not self.running:
@@ -42,8 +45,10 @@ class Automaton:
             if cell.state in [CellState.LATENT, CellState.INFECTED]:
                 cell.update_infection(self.death_probability, self.latent_to_active_prob)
 
-        if (self.current_day * self.infection_checks_per_day) % 1 == 0:
+        self.update_counter += 1
+        if self.update_counter >= 1 / self.infection_checks_per_day:
             self.check_if_can_infect()
+            self.update_counter = 0
 
     def check_if_can_infect(self):
         for cell in self.cells:
@@ -53,6 +58,7 @@ class Automaton:
                         distance = ((cell.x - other_cell.x) ** 2 + (cell.y - other_cell.y) ** 2) ** 0.5
                         if distance <= self.infection_radius:
                             self.infect(other_cell)
+                            self.infection_radii.append((cell, self.infection_radius, 255))
 
     def infect(self, other_cell):
         if random.random() < self.infection_probability:
@@ -81,8 +87,15 @@ class Automaton:
                 color = BLUE
             pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), cell.size)
 
-        surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
-        screen.blit(surface, (0, 0))
+        if self.show_radius:
+            for i, (cell, radius, alpha) in enumerate(self.infection_radii):
+                if alpha > 0:
+                    surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+                    pygame.draw.circle(surface, (255, 0, 0, alpha), (int(cell.x), int(cell.y)), int(radius), 1)
+                    screen.blit(surface, (0, 0))
+                    self.infection_radii[i] = (cell, radius, alpha - 15)
+
+            self.infection_radii = [r for r in self.infection_radii if r[2] > 0]
 
     def get_statistics(self):
         healthy = len([c for c in self.cells if c.state == CellState.HEALTHY])
@@ -99,3 +112,6 @@ class Automaton:
     def stop_if_no_infected(self):
         if all(cell.state != CellState.INFECTED for cell in self.cells):
             self.running = False
+
+    def toggle_radii(self):
+        self.show_radius = not self.show_radius

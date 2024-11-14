@@ -71,10 +71,17 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(self.infection_probability_active_input)
 
         # Additional controls
-        auto_stop_checkbox = QCheckBox("No stop when no infected")
+        auto_stop_checkbox = QCheckBox("Stop when no infected")
         auto_stop_checkbox.setFixedHeight(20)
+        auto_stop_checkbox.setChecked(True)
         auto_stop_checkbox.stateChanged.connect(self.toggle_auto_stop)
         param_layout.addWidget(auto_stop_checkbox)
+
+        show_radii_checkbox = QCheckBox("Show Infection Radius")
+        show_radii_checkbox.setFixedHeight(20)
+        show_radii_checkbox.setChecked(True)
+        show_radii_checkbox.stateChanged.connect(self.toggle_radii_visibility)
+        param_layout.addWidget(show_radii_checkbox)
 
         # Buttons
         start_button = QPushButton("Start/Restart")
@@ -153,6 +160,9 @@ class MainWindow(QMainWindow):
 
     def toggle_animation_visibility(self):
         self.game_widget.setVisible(not self.game_widget.isVisible())
+
+    def toggle_radii_visibility(self):
+        self.game_widget.toggle_radii()
 
 
 if __name__ == "__main__":

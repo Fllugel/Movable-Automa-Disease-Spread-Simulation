@@ -5,9 +5,8 @@ from cell import Cell
 from cell_state import CellState
 
 BLUE = (127, 179, 213)
-GRAY = (66, 66, 66)
-LATENT_RED = (255, 100, 100)
-ACTIVE_RED = (255, 0, 0)
+GRAY = (211, 211, 211)
+PINK = (255, 100, 100)
 BLACK = (0, 0, 0)
 BACKGROUND_DARK = (0, 0, 0)
 BACKGROUND_LIGHT = (255, 255, 255)
@@ -65,9 +64,9 @@ class Automaton:
             if cell.state == CellState.DEAD:
                 color = BLACK
             elif cell.state == CellState.LATENT:
-                color = LATENT_RED
+                color = GRAY
             elif cell.state == CellState.INFECTED:
-                color = ACTIVE_RED
+                color = PINK
             else:
                 color = BLUE
             pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), cell.size)

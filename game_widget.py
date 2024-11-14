@@ -3,7 +3,7 @@ import pygame
 from PyQt5.QtWidgets import QWidget, QLabel
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPainter, QImage
-from automaton import Automaton, BACKGROUND_DARK, BLUE, GRAY, LATENT_RED, ACTIVE_RED, BLACK
+from automaton import Automaton, BACKGROUND_DARK, BLUE, GRAY, PINK, BLACK
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
@@ -124,7 +124,7 @@ class GameWidget(QWidget):
         latent_infected = [l + i for l, i in zip(self.latent_data, self.infected_data)]
         dead_latent_infected = [l + i + d for l, i, d in zip(self.latent_data, self.infected_data, self.dead_data)]
 
-        self.ax.fill_between(self.time_data, 0, self.latent_data, color='#FFCCCB', label='Latent')
+        self.ax.fill_between(self.time_data, 0, self.latent_data, color='#D3D3D3', label='Latent')
         self.ax.fill_between(self.time_data, self.latent_data, latent_infected, color='#F1948A', label='Infectious')
         self.ax.fill_between(self.time_data, dead_latent_infected, [total_population] * len(dead_latent_infected), color='black', label='Dead')
 

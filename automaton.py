@@ -17,9 +17,9 @@ class Automaton:
         self.height = height
         self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed, size=cell_size, infection_period=infection_period) for _ in range(cell_count)]
         for i in range(infected_count):
-            self.cells[i].become_infected()
+            self.cells[i].transition_to_active()
         for i in range(round(cell_count * latent_count)):
-            self.cells[i + infected_count].become_latent()
+            self.cells[i + infected_count].transition_to_latent()
 
         self.infection_probability = infection_probability
         self.infection_radius = infection_radius
@@ -44,20 +44,16 @@ class Automaton:
 
         self.update_counter += 1
         if self.update_counter <= 1:
-            self.check_infected()
+            for cell in self.cells:
+                cell.update_infection(self.death_probability, self.latent_to_active_prob)
 
         if self.update_counter >= 1 / self.infection_checks_per_day:
             self.update_counter = 0
             self.check_if_can_infect()
 
-
-    def check_infected(self):
-        for cell in self.cells:
-            cell.update_infection(self.death_probability, self.latent_to_active_prob)
-
     def check_if_can_infect(self):
         for cell in self.cells:
-            if cell.state == CellState.INFECTED:
+            if cell.state == CellState.ACTIVE:
                 for other_cell in self.cells:
                     if other_cell.state in [CellState.HEALTHY, CellState.LATENT]:
                         distance = ((cell.x - other_cell.x) ** 2 + (cell.y - other_cell.y) ** 2) ** 0.5
@@ -74,9 +70,9 @@ class Automaton:
             return
 
         if random.random() < infection_probability:
-            other_cell.become_infected()
-        else:
-            other_cell.become_latent()
+            other_cell.transition_to_active()
+        elif other_cell.state == CellState.HEALTHY:
+            other_cell.transition_to_latent()
 
     def draw(self, screen, background_color):
         screen.fill(background_color)
@@ -85,7 +81,7 @@ class Automaton:
                 color = BLACK
             elif cell.state == CellState.LATENT:
                 color = PURPLE
-            elif cell.state == CellState.INFECTED:
+            elif cell.state == CellState.ACTIVE:
                 color = PINK
             else:
                 color = BLUE
@@ -103,7 +99,7 @@ class Automaton:
 
     def get_statistics(self):
         healthy = len([c for c in self.cells if c.state == CellState.HEALTHY])
-        infected = len([c for c in self.cells if c.state == CellState.INFECTED])
+        infected = len([c for c in self.cells if c.state == CellState.ACTIVE])
         latent = len([c for c in self.cells if c.state == CellState.LATENT])
         dead = len([c for c in self.cells if c.state == CellState.DEAD])
         return healthy, infected, latent, dead
@@ -118,7 +114,7 @@ class Automaton:
         Cell.current_day = current_day
 
     def stop_if_no_infected(self):
-        if all(cell.state != CellState.INFECTED for cell in self.cells):
+        if all(cell.state != CellState.ACTIVE for cell in self.cells):
             self.running = False
 
     def toggle_radii(self):

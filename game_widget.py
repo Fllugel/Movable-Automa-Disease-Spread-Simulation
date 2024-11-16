@@ -1,4 +1,3 @@
-
 import pygame
 from PyQt5.QtWidgets import QWidget, QLabel
 from PyQt5.QtCore import QTimer

@@ -57,13 +57,13 @@ class MainWindow(QMainWindow):
         param_layout.addWidget(self.cell_size_input)
 
         # New parameter inputs for probabilities
-        self.latent_to_active_probability_input = QLineEdit("0")  # Default value
-        self.infection_probability_latent_input = QLineEdit("0.05")  # Default value
-        self.infection_probability_active_input = QLineEdit("0.1")  # Default value
+        self.latent_to_active_probability_input = QLineEdit("0")
+        self.infection_probability_latent_input = QLineEdit("0.05")
+        self.infection_probability_active_input = QLineEdit("0.1")
 
         # Adding new fields to layout
         param_layout.addWidget(QLabel("Cycles per Day"))
-        self.cycles_per_day_input = QLineEdit("10")  # Default value for cycles per day
+        self.cycles_per_day_input = QLineEdit("10")
         param_layout.addWidget(self.cycles_per_day_input)
 
         param_layout.addWidget(QLabel("Latent to Active Probability"))
@@ -122,8 +122,8 @@ class MainWindow(QMainWindow):
         layout.addWidget(scroll_area, 0, 0, 2, 1)
 
         self.game_widget = GameWidget(self)
-        self.game_widget.setVisible(True)  # Initialize as visible
-        self.game_widget.daily_stats_label = self.daily_stats_label  # Reference to update daily stats
+        self.game_widget.setVisible(True)
+        self.game_widget.daily_stats_label = self.daily_stats_label
         layout.addWidget(self.game_widget, 0, 1)
         layout.addWidget(self.game_widget.canvas, 1, 1)
 
@@ -145,12 +145,10 @@ class MainWindow(QMainWindow):
         # New parameters
         latent_to_active_prob = float(self.latent_to_active_probability_input.text())
         infection_prob_latent = float(self.infection_probability_latent_input.text())
-        infection_prob_active = float(self.infection_probability_active_input.text())
-
-        infection_period_cycles = infection_period_days * cycles_per_day  # Convert days to cycles
+        infection_prob_active = float(self.infection_probability_active_input.text())# Convert days to cycles
 
         self.game_widget.start_simulation(cell_count, infected_count, latent_count, cell_speed, infection_probability,
-                                          infection_radius, infection_period_cycles, death_probability, cell_size,
+                                          infection_radius, infection_period_days, death_probability, cell_size,
                                           cycles_per_day, latent_to_active_prob, infection_prob_latent, infection_prob_active)
 
     def pause_simulation(self):

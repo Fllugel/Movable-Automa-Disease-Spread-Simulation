@@ -39,9 +39,9 @@ class GameWidget(QWidget):
         self.infected_data = []
         self.dead_data = []
         self.time_step = 0
-        self.cycles_per_day = 200  # Number of cycles representing a day
-        self.cycle_counter = 0  # To keep track of cycles within a day
-        self.current_day = 1  # Initialize the day counter
+        self.cycles_per_day = 200
+        self.cycle_counter = 0
+        self.current_day = 1
 
     def set_plot_background(self):
         self.ax.set_facecolor('white')
@@ -64,10 +64,10 @@ class GameWidget(QWidget):
         self.automaton.show_radius = not self.automaton.show_radius
 
     def start_simulation(self, cell_count, infected_count,latent_count, cell_speed, infection_probability, infection_radius,
-                         infection_period_cycles, death_probability, cell_size, cycles_per_day,
+                         infection_period_days, death_probability, cell_size, cycles_per_day,
                          latent_to_active_prob, infection_prob_latent, infection_prob_active):
         self.automaton = Automaton(600, 400, cell_count, infected_count, latent_count, cell_speed, infection_probability,
-                                   infection_radius, infection_period_cycles, death_probability, cell_size,
+                                   infection_radius, infection_period_days, death_probability, cell_size,
                                    latent_to_active_prob, infection_prob_latent, infection_prob_active)
         self.time_data.clear()
         self.healthy_data.clear()
@@ -86,7 +86,7 @@ class GameWidget(QWidget):
                 self.cycle_counter += 1
                 self.current_day = self.cycle_counter / self.cycles_per_day
                 if self.automaton.running:
-                    self.automaton.current_day = self.current_day
+                    self.automaton.update_current_day(self.current_day)
                     self.update_statistics()
             self.automaton.draw(self.screen, BACKGROUND_DARK)
             self.repaint()

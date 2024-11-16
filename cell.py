@@ -5,15 +5,18 @@ MAX_SPEED = 2.0
 SPEED_CHANGE_FACTOR = 0.01
 
 class Cell:
-    def __init__(self, x, y, speed, size=3):
+    current_day = 0
+
+    def __init__(self, x, y, speed, size=3, infection_period=10):
         self.x = x
         self.y = y
         self.speed_x = random.uniform(-speed, speed)
         self.speed_y = random.uniform(-speed, speed)
-        self.state = CellState.HEALTHY
-        self.infection_time = 0
+        self._state = CellState.HEALTHY
         self.speed = speed
         self.size = size
+        self.infection_period = infection_period
+        self.infection_start_day = -1
 
     def move(self, width, height):
         if self.state == CellState.DEAD:
@@ -36,10 +39,31 @@ class Cell:
         self.x = max(0, min(self.x, width))
         self.y = max(0, min(self.y, height))
 
+    def become_healthy(self):
+        self._state = CellState.HEALTHY
+
+    def become_infected(self):
+        self._state = CellState.INFECTED
+        self.infection_start_day = Cell.current_day
+
+    def become_latent(self):
+        self._state = CellState.LATENT
+        self.infection_start_day = -1
+
+    def die(self):
+        self._state = CellState.DEAD
+        self.infection_start_day = -1
+
     def update_infection(self, death_probability, latent_to_active_probability):
         if self.state == CellState.LATENT:
             if random.random() < latent_to_active_probability:
-                self.state = CellState.INFECTED
+                self.become_infected()
         elif self.state == CellState.INFECTED:
-            if random.random() < death_probability:
-                self.state = CellState.DEAD
+            if Cell.current_day - self.infection_start_day >= self.infection_period:
+                self.become_latent()
+            elif random.random() < death_probability:
+                self.die()
+
+    @property
+    def state(self):
+        return self._state

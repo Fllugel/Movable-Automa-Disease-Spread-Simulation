@@ -92,7 +92,9 @@ class MainWindow(QMainWindow):
         show_radii_checkbox = QCheckBox("Show Infection Radius")
         show_radii_checkbox.setFixedHeight(20)
         show_radii_checkbox.setChecked(True)
-        show_radii_checkbox.stateChanged.connect(self.toggle_radii_visibility)
+        self.radius_visibility = True
+        show_radii_checkbox.stateChanged.connect(self.toggle_radius_visibility)
+        show_radii_checkbox.stateChanged.connect(self.set_radius_visibility)
         controls_layout.addWidget(show_radii_checkbox)
 
         start_button = QPushButton("Start/Restart")
@@ -157,6 +159,8 @@ class MainWindow(QMainWindow):
                                           infection_radius, infection_period_days, death_probability, cell_size,
                                           cycles_per_day, latent_to_active_prob, infection_prob_latent, infection_prob_active)
 
+        self.set_radius_visibility()
+
     def pause_simulation(self):
         self.game_widget.toggle_pause()
 
@@ -169,5 +173,8 @@ class MainWindow(QMainWindow):
     def toggle_animation_visibility(self):
         self.game_widget.setVisible(not self.game_widget.isVisible())
 
-    def toggle_radii_visibility(self):
-        self.game_widget.toggle_radii()
+    def toggle_radius_visibility(self):
+        self.radius_visibility = not self.radius_visibility
+
+    def set_radius_visibility(self):
+        self.game_widget.set_radius(self.radius_visibility)

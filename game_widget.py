@@ -15,13 +15,14 @@ class GameWidget(QWidget):
         self.screen = pygame.Surface((600, 400))
         self.automaton = None
         self.is_paused = False
+        self.show_radius = True
         self.auto_stop_enabled = True
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.game_loop)
         self.timer.start(16)
 
         # Daily statistics labels
-        self.stats_label = QLabel("Infected: 0\nLatent: 0\nDead: 0", self)
+        self.stats_label = QLabel("Day: 0\nInfected: 0\nLatent: 0\nDead: 0", self)
         self.stats_label.move(620, 0)  # Positioning on the right side of the screen
 
         self.figure, self.ax = plt.subplots()
@@ -60,7 +61,7 @@ class GameWidget(QWidget):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
     def toggle_radii(self):
-        self.automaton.show_radius = not self.automaton.show_radius
+        self.show_radius = not self.show_radius
 
     def start_simulation(self, cell_count, infected_count,latent_count, cell_speed, infection_probability, infection_radius,
                          infection_period_days, death_probability, cell_size, cycles_per_day,
@@ -101,7 +102,7 @@ class GameWidget(QWidget):
         self.dead_data.append(dead)
 
         self.daily_stats_label.setText(
-            f"Infected: {infected}\nLatent: {latent}\nDead: {dead}"
+            f"Day: {self.current_day}\nInfected: {infected}\nLatent: {latent}\nDead: {dead}"
         )
 
         self.update_plot()

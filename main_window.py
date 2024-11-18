@@ -115,7 +115,7 @@ class MainWindow(QMainWindow):
         toggle_button.clicked.connect(self.toggle_animation_visibility)
         controls_layout.addWidget(toggle_button)
 
-        self.daily_stats_label = QLabel("Infected: 0\nLatent: 0\nDead: 0")
+        self.daily_stats_label = QLabel("Day 0\nInfected: 0\nLatent: 0\nDead: 0")
         controls_layout.addWidget(self.daily_stats_label)
 
         controls_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))

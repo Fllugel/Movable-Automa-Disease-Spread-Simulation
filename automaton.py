@@ -61,7 +61,7 @@ class Automaton:
                             self.infect(other_cell)
                             self.infection_radii.append((cell, self.infection_radius, 255))
 
-    def infect(self, other_cell):
+    def infect(self, other_cell): #TODO: Fix infection logic
         if other_cell.state == CellState.HEALTHY:
             infection_probability = self.infection_prob_healthy
         elif other_cell.state == CellState.LATENT:

@@ -116,6 +116,3 @@ class Automaton:
     def stop_if_no_infected(self):
         if all(cell.state != CellState.ACTIVE for cell in self.cells):
             self.running = False
-
-    def toggle_radii(self):
-        self.show_radius = not self.show_radius

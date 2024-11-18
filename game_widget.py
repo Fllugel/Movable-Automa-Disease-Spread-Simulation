@@ -15,7 +15,6 @@ class GameWidget(QWidget):
         self.screen = pygame.Surface((600, 400))
         self.automaton = None
         self.is_paused = False
-        self.show_radius = True
         self.auto_stop_enabled = True
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.game_loop)
@@ -61,7 +60,7 @@ class GameWidget(QWidget):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
     def toggle_radii(self):
-        self.show_radius = not self.show_radius
+        self.automaton.toggle_radii()
 
     def start_simulation(self, cell_count, infected_count,latent_count, cell_speed, infection_probability, infection_radius,
                          infection_period_days, death_probability, cell_size, cycles_per_day,

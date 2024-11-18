@@ -29,6 +29,7 @@ class Automaton:
         self.latent_to_active_prob = latent_to_active_prob
         self.infection_prob_latent = infection_prob_latent
         self.infection_prob_healthy = infection_prob_healthy
+        self.daily_statistics = {"infected": 0, "dead": 0}
         self.infection_checks_per_day = 0.05
         self.infection_radii = []
         self.show_radius = True
@@ -103,6 +104,10 @@ class Automaton:
         dead = len([c for c in self.cells if c.state == CellState.DEAD])
         return healthy, infected, latent, dead
 
+    def reset_daily_statistics(self):
+        daily_stats = self.daily_statistics.copy()
+        self.daily_statistics = {"infected": 0, "dead": 0}
+        return daily_stats
 
     @staticmethod
     def update_current_day(current_day):
@@ -112,6 +117,5 @@ class Automaton:
         if all(cell.state != CellState.ACTIVE for cell in self.cells):
             self.running = False
 
-    @staticmethod
     def toggle_radii(self):
         self.show_radius = not self.show_radius

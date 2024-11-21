@@ -2,14 +2,15 @@ import pygame
 from PyQt5.QtWidgets import QWidget, QLabel
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QPainter, QImage
-from automaton import Automaton, BACKGROUND_DARK
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
+from automaton import Automaton
+from config import Config
 
 class GameWidget(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
+        self.config = None
         self.setFixedSize(600, 400)
         pygame.init()
         self.screen = pygame.Surface((600, 400))
@@ -62,21 +63,18 @@ class GameWidget(QWidget):
     def set_radius(self, show_radius):
         self.automaton.show_radius = show_radius
 
-    def start_simulation(self, cell_count, infected_count,latent_count, cell_speed, infection_probability, infection_radius,
-                         infection_period_days, death_probability, cell_size, cycles_per_day,
-                         latent_to_active_prob, infection_prob_latent, infection_prob_active):
-        self.automaton = Automaton(600, 400, cell_count, infected_count, latent_count, cell_speed, infection_probability,
-                                   infection_radius, infection_period_days, death_probability, cell_size,
-                                   latent_to_active_prob, infection_prob_latent, infection_prob_active)
+    def start_simulation(self, config: Config):
+        self.automaton = Automaton(config)
         self.time_data.clear()
         self.healthy_data.clear()
         self.latent_data.clear()
         self.infected_data.clear()
         self.dead_data.clear()
         self.time_step = 0
-        self.cycle_counter = 0  # Reset cycle counter
-        self.current_day = 1  # Reset the day counter
-        self.cycles_per_day = cycles_per_day  # Set cycles per day
+        self.cycle_counter = 0
+        self.current_day = 1
+        self.cycles_per_day = config.cycles_per_day
+        self.config = config
 
     def game_loop(self):
         if self.automaton:
@@ -87,7 +85,7 @@ class GameWidget(QWidget):
                 if self.automaton.running:
                     self.automaton.update_current_day(self.current_day)
                     self.update_statistics()
-            self.automaton.draw(self.screen, BACKGROUND_DARK)
+            self.automaton.draw(self.screen, self.config.background_color)
             self.repaint()
             if self.auto_stop_enabled:
                 self.automaton.stop_if_no_infected()

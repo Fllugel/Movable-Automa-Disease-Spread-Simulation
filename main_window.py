@@ -2,21 +2,7 @@ from PyQt5.QtWidgets import (QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout,
                              QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem,
                              QSizePolicy, QScrollArea, QLayout, QGroupBox, QFormLayout)
 from game_widget import GameWidget
-
-# Default values as constants
-DEFAULT_CELL_COUNT = 500
-DEFAULT_INFECTED_COUNT = 1
-DEFAULT_LATENT_PROB = 0.25
-DEFAULT_CYCLES_PER_DAY = 10
-DEFAULT_INFECTION_PROBABILITY = 0.25
-DEFAULT_INFECTION_RADIUS = 10
-DEFAULT_INFECTION_PERIOD = 30
-DEFAULT_LATENT_TO_ACTIVE_PROBABILITY = 0
-DEFAULT_INFECTION_PROBABILITY_LATENT = 0.05
-DEFAULT_INFECTION_PROBABILITY_ACTIVE = 0.1
-DEFAULT_CELL_SPEED = 0.5
-DEFAULT_DEATH_PROBABILITY = 0
-DEFAULT_CELL_SIZE = 3
+from config import Config
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -24,6 +10,8 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Cellular Automaton - Infection Simulation")
         self.setGeometry(100, 100, 1200, 800)
         self.setMinimumSize(800, 600)
+
+        self.config = Config()
 
         main_widget = QWidget()
         main_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -39,10 +27,10 @@ class MainWindow(QMainWindow):
         # Group 1: Simulation Parameters
         simulation_params_group = QGroupBox("Simulation Parameters")
         simulation_params_layout = QFormLayout()
-        self.cell_count_input = QLineEdit(str(DEFAULT_CELL_COUNT))
-        self.infected_count_input = QLineEdit(str(DEFAULT_INFECTED_COUNT))
-        self.latent_prob_input = QLineEdit(str(DEFAULT_LATENT_PROB))
-        self.cycles_per_day_input = QLineEdit(str(DEFAULT_CYCLES_PER_DAY))
+        self.cell_count_input = QLineEdit(str(self.config.cell_count))
+        self.infected_count_input = QLineEdit(str(self.config.infected_count))
+        self.latent_prob_input = QLineEdit(str(self.config.latent_prob))
+        self.cycles_per_day_input = QLineEdit(str(self.config.cycles_per_day))
         simulation_params_layout.addRow(QLabel("Cell Count"), self.cell_count_input)
         simulation_params_layout.addRow(QLabel("Infected Count"), self.infected_count_input)
         simulation_params_layout.addRow(QLabel("Latent Percentage"), self.latent_prob_input)
@@ -53,12 +41,12 @@ class MainWindow(QMainWindow):
         # Group 2: Infection Parameters
         infection_params_group = QGroupBox("Infection Parameters")
         infection_params_layout = QFormLayout()
-        self.infection_probability_input = QLineEdit(str(DEFAULT_INFECTION_PROBABILITY))
-        self.infection_period_input = QLineEdit(str(DEFAULT_INFECTION_PERIOD))
-        self.latent_to_active_probability_input = QLineEdit(str(DEFAULT_LATENT_TO_ACTIVE_PROBABILITY))
-        self.infection_probability_latent_input = QLineEdit(str(DEFAULT_INFECTION_PROBABILITY_LATENT))
-        self.infection_probability_active_input = QLineEdit(str(DEFAULT_INFECTION_PROBABILITY_ACTIVE))
-        self.death_probability_input = QLineEdit(str(DEFAULT_DEATH_PROBABILITY))
+        self.infection_probability_input = QLineEdit(str(self.config.infection_probability))
+        self.infection_period_input = QLineEdit(str(self.config.infection_period))
+        self.latent_to_active_probability_input = QLineEdit(str(self.config.latent_to_active_prob))
+        self.infection_probability_latent_input = QLineEdit(str(self.config.infection_prob_latent))
+        self.infection_probability_active_input = QLineEdit(str(self.config.infection_prob_active))
+        self.death_probability_input = QLineEdit(str(self.config.death_probability))
         infection_params_layout.addRow(QLabel("Infection Probability"), self.infection_probability_input)
         infection_params_layout.addRow(QLabel("Infection Period"), self.infection_period_input)
         infection_params_layout.addRow(QLabel("Latent to Active Probability"), self.latent_to_active_probability_input)
@@ -71,9 +59,9 @@ class MainWindow(QMainWindow):
         # Group 3: Cell Parameters
         cell_params_group = QGroupBox("Cell Parameters")
         cell_params_layout = QFormLayout()
-        self.cell_speed_input = QLineEdit(str(DEFAULT_CELL_SPEED))
-        self.cell_size_input = QLineEdit(str(DEFAULT_CELL_SIZE))
-        self.infection_radius_input = QLineEdit(str(DEFAULT_INFECTION_RADIUS))
+        self.cell_speed_input = QLineEdit(str(self.config.cell_speed))
+        self.cell_size_input = QLineEdit(str(self.config.cell_size))
+        self.infection_radius_input = QLineEdit(str(self.config.infection_radius))
         cell_params_layout.addRow(QLabel("Cell Speed"), self.cell_speed_input)
         cell_params_layout.addRow(QLabel("Cell Size"), self.cell_size_input)
         cell_params_layout.addRow(QLabel("Cell Infection Radius"), self.infection_radius_input)
@@ -140,24 +128,21 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(main_widget)
 
     def start_simulation(self):
-        cell_count = int(self.cell_count_input.text())
-        infected_count = int(self.infected_count_input.text())
-        latent_count = float(self.latent_prob_input.text())
-        cell_speed = float(self.cell_speed_input.text())
-        infection_probability = float(self.infection_probability_input.text())
-        infection_radius = int(self.infection_radius_input.text())
-        infection_period_days = int(self.infection_period_input.text())
-        death_probability = float(self.death_probability_input.text())
-        cell_size = int(self.cell_size_input.text())
-        cycles_per_day = int(self.cycles_per_day_input.text())
+        self.config.cell_count = int(self.cell_count_input.text())
+        self.config.infected_count = int(self.infected_count_input.text())
+        self.config.latent_prob = float(self.latent_prob_input.text())
+        self.config.cycles_per_day = int(self.cycles_per_day_input.text())
+        self.config.infection_probability = float(self.infection_probability_input.text())
+        self.config.infection_radius = int(self.infection_radius_input.text())
+        self.config.infection_period = int(self.infection_period_input.text())
+        self.config.latent_to_active_prob = float(self.latent_to_active_probability_input.text())
+        self.config.infection_prob_latent = float(self.infection_probability_latent_input.text())
+        self.config.infection_prob_active = float(self.infection_probability_active_input.text())
+        self.config.cell_speed = float(self.cell_speed_input.text())
+        self.config.death_probability = float(self.death_probability_input.text())
+        self.config.cell_size = int(self.cell_size_input.text())
 
-        latent_to_active_prob = float(self.latent_to_active_probability_input.text())
-        infection_prob_latent = float(self.infection_probability_latent_input.text())
-        infection_prob_active = float(self.infection_probability_active_input.text())
-
-        self.game_widget.start_simulation(cell_count, infected_count, latent_count, cell_speed, infection_probability,
-                                          infection_radius, infection_period_days, death_probability, cell_size,
-                                          cycles_per_day, latent_to_active_prob, infection_prob_latent, infection_prob_active)
+        self.game_widget.start_simulation(self.config)
 
         self.set_radius_visibility()
 

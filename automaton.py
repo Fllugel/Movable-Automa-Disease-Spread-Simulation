@@ -3,37 +3,36 @@ import pygame
 from collections import defaultdict
 from cell import Cell
 from cell_state import CellState
-
-BLUE = (127, 179, 213)
-PURPLE = (255, 140, 255)
-PINK = (255, 100, 100)
-BLACK = (0, 0, 0)
-BACKGROUND_DARK = (0, 0, 0)
-BACKGROUND_LIGHT = (255, 255, 255)
+from config import Config
 
 class Automaton:
-    def __init__(self, width, height, cell_count, infected_count, latent_count, cell_speed, infection_probability, infection_radius, infection_period, death_probability, cell_size, latent_to_active_prob, infection_prob_latent, infection_prob_healthy):
-        self.width = width
-        self.height = height
-        self.cells = [Cell(random.randint(0, width), random.randint(0, height), cell_speed, size=cell_size, infection_period=infection_period) for _ in range(cell_count)]
-        for i in range(infected_count):
+    def __init__(self, config: Config):
+        self.width = 600
+        self.height = 400
+        self.cells = [Cell(random.randint(0, self.width), random.randint(0, self.height), config.cell_speed, size=config.cell_size, infection_period=config.infection_period) for _ in range(config.cell_count)]
+        for i in range(config.infected_count):
             self.cells[i].transition_to_active()
-        for i in range(round(cell_count * latent_count)):
-            self.cells[i + infected_count].transition_to_latent()
+        for i in range(round(config.cell_count * config.latent_prob)):
+            self.cells[i + config.infected_count].transition_to_latent()
 
-        self.infection_probability = infection_probability
-        self.infection_radius = infection_radius
-        self.death_probability = death_probability
+        self.infection_probability = config.infection_probability
+        self.infection_radius = config.infection_radius
+        self.death_probability = config.death_probability
         self.infection_check_timer = defaultdict(lambda: -float('inf'))
         self.running = True
-        self.latent_to_active_prob = latent_to_active_prob
-        self.infection_prob_latent = infection_prob_latent
-        self.infection_prob_healthy = infection_prob_healthy
+        self.latent_to_active_prob = config.latent_to_active_prob
+        self.infection_prob_latent = config.infection_prob_latent
+        self.infection_prob_healthy = config.infection_prob_active
         self.daily_statistics = {"infected": 0, "dead": 0}
         self.infection_checks_per_day = 0.05
         self.infection_radii = []
         self.show_radius = True
         self.update_counter = 0
+        self.color_healthy = config.color_healthy
+        self.color_latent = config.color_latent
+        self.color_active = config.color_active
+        self.color_dead = config.color_dead
+        self.background_color = config.background_color
 
     def update(self):
         if not self.running:
@@ -63,13 +62,13 @@ class Automaton:
         screen.fill(background_color)
         for cell in self.cells:
             if cell.state == CellState.DEAD:
-                color = BLACK
+                color = self.color_dead
             elif cell.state == CellState.LATENT:
-                color = PURPLE
+                color = self.color_latent
             elif cell.state == CellState.ACTIVE:
-                color = PINK
+                color = self.color_active
             else:
-                color = BLUE
+                color = self.color_healthy
             pygame.draw.circle(screen, color, (int(cell.x), int(cell.y)), cell.size)
 
         if self.show_radius:

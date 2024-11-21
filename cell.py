@@ -1,6 +1,7 @@
 import random
 from cell_state import CellState
 
+
 class Cell:
     MAX_SPEED = 2.0
     SPEED_CHANGE_FACTOR = 0.01
@@ -97,6 +98,20 @@ class Cell:
                 self.set_state(CellState.LATENT)
             elif random.random() < death_probability:
                 self.set_state(CellState.DEAD)
+
+    def can_infect(self, other_cell, infection_radius):
+        if self.state == CellState.ACTIVE and other_cell.state in [CellState.HEALTHY, CellState.LATENT]:
+            distance = ((self.x - other_cell.x) ** 2 + (self.y - other_cell.y) ** 2) ** 0.5
+            return distance <= infection_radius
+        return False
+
+    def infect(self, infection_prob_healthy, infection_prob_latent):
+        if self.state == CellState.HEALTHY:
+            if random.random() < infection_prob_healthy:
+                self.transition_to_active()
+        elif self.state == CellState.LATENT:
+            if random.random() < infection_prob_latent:
+                self.transition_to_active()
 
     # State transition helpers
     def transition_to_healthy(self):

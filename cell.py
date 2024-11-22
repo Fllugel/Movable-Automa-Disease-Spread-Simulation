@@ -89,6 +89,7 @@ class Cell:
         if self._state == CellState.LATENT:
             if random.random() < latent_to_active_probability:
                 self.set_state(CellState.ACTIVE)
+                self._infection_start_day = current_day
         elif self._state == CellState.ACTIVE:
             if current_day - self._infection_start_day >= self.infection_period:
                 self.set_state(CellState.LATENT)

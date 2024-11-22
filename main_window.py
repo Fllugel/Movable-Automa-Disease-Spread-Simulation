@@ -80,6 +80,11 @@ class MainWindow(QMainWindow):
         show_radii_checkbox.stateChanged.connect(self.set_radius_visibility)
         controls_layout.addWidget(show_radii_checkbox)
 
+        show_hide_checkbox = QCheckBox("Show/Hide Animation")
+        show_hide_checkbox.setChecked(True)
+        show_hide_checkbox.stateChanged.connect(self.toggle_animation_visibility)
+        controls_layout.addWidget(show_hide_checkbox)
+
         button_height = 35
 
         start_button = QPushButton("Start/Restart")
@@ -96,11 +101,6 @@ class MainWindow(QMainWindow):
         save_button.setFixedHeight(button_height)
         save_button.clicked.connect(self.save_plot)
         controls_layout.addWidget(save_button)
-
-        toggle_button = QPushButton("Show/Hide Animation")
-        toggle_button.setFixedHeight(button_height)
-        toggle_button.clicked.connect(self.toggle_animation_visibility)
-        controls_layout.addWidget(toggle_button)
 
         controls_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         controls_group.setLayout(controls_layout)

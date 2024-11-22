@@ -41,6 +41,7 @@ class GameWidget(QWidget):
         self.cell_automaton = CellAutomaton(config)
         self.current_day = 0
         self.config = config
+        self.is_paused = False
 
     def game_loop(self):
         if self.cell_automaton and not self.is_paused:

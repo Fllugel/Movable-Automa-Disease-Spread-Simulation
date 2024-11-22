@@ -8,7 +8,7 @@ class StatisticsWidget(QWidget):
         self.config = config
         self.figure, self.ax = plt.subplots()
         self.canvas = FigureCanvas(self.figure)
-        self.canvas.setFixedSize(600, 200)
+        self.canvas.setFixedSize(600, 350)
         self.canvas.setStyleSheet("background-color:white;")
         self.canvas.setContentsMargins(0, 0, 0, 0)
         self.figure.patch.set_facecolor('none')

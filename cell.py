@@ -1,11 +1,10 @@
 import random
+import pygame
 from cell_state import CellState
-
 
 class Cell:
     MAX_SPEED = 2.0
     SPEED_CHANGE_FACTOR = 0.01
-    current_day = 0  # Should ideally be managed externally.
 
     def __init__(self, x, y, speed, size=3, infection_period=10):
         self._x = x
@@ -18,6 +17,7 @@ class Cell:
         self.size = size
         self.infection_period = infection_period
         self.randomize_movement = True
+        self._infection_alpha = 0
 
     # Properties for encapsulation
     @property
@@ -55,10 +55,6 @@ class Cell:
             raise ValueError(f"Invalid state transition: {self._state} to {new_state}")
 
         self._state = new_state
-        if new_state == CellState.ACTIVE:
-            self._infection_start_day = Cell.current_day
-        else:
-            self._infection_start_day = -1
 
     def is_active(self):
         return self._state != CellState.DEAD
@@ -89,13 +85,14 @@ class Cell:
             self._speed_y = -self._speed_y
             self._y = max(0, min(self._y, height))
 
-    def update_infection(self, death_probability, latent_to_active_probability):
+    def update_infection(self, death_probability, latent_to_active_probability, current_day):
         if self._state == CellState.LATENT:
             if random.random() < latent_to_active_probability:
                 self.set_state(CellState.ACTIVE)
         elif self._state == CellState.ACTIVE:
-            if Cell.current_day - self.infection_start_day >= self.infection_period:
+            if current_day - self._infection_start_day >= self.infection_period:
                 self.set_state(CellState.LATENT)
+                self._infection_start_day = -1
             elif random.random() < death_probability:
                 self.set_state(CellState.DEAD)
 
@@ -105,23 +102,38 @@ class Cell:
             return distance <= infection_radius
         return False
 
-    def infect(self, infection_prob_healthy, infection_prob_latent):
-        if self.state == CellState.HEALTHY:
-            if random.random() < infection_prob_healthy:
-                self.transition_to_active()
+    def infect(self, infection_prob_healthy, infection_prob_latent, infection_probability, current_day):
+        self._infection_start_day = current_day
+
+        if random.random() < infection_probability:
+            if self.state == CellState.HEALTHY:
+                if random.random() < infection_prob_healthy:
+                    self.set_state(CellState.ACTIVE)
+            elif self.state == CellState.LATENT:
+                if random.random() < infection_prob_latent:
+                    self.set_state(CellState.ACTIVE)
+
+    def show_radius(self):
+        self._infection_alpha = 255
+
+    def draw(self, screen, color_healthy, color_latent, color_active, color_dead, show_radius, infection_radius):
+        if self.state == CellState.DEAD:
+            color = color_dead
         elif self.state == CellState.LATENT:
-            if random.random() < infection_prob_latent:
-                self.transition_to_active()
+            color = color_latent
+        elif self.state == CellState.ACTIVE:
+            color = color_active
+        else:
+            color = color_healthy
 
-    # State transition helpers
-    def transition_to_healthy(self):
-        self.set_state(CellState.HEALTHY)
+        # Ensure colors are consistent by converting them to the same format
+        color = pygame.Color(*color)
 
-    def transition_to_active(self):
-        self.set_state(CellState.ACTIVE)
+        pygame.draw.circle(screen, color, (int(self.x), int(self.y)), self.size)
 
-    def transition_to_latent(self):
-        self.set_state(CellState.LATENT)
-
-    def transition_to_dead(self):
-        self.set_state(CellState.DEAD)
+        if show_radius and self._infection_alpha > 0:
+            surface = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
+            surface.fill((0, 0, 0, 0))
+            pygame.draw.circle(surface, (255, 0, 0, self._infection_alpha), (int(self.x), int(self.y)), int(infection_radius), 1)
+            screen.blit(surface, (0, 0))
+            self._infection_alpha = max(0, self._infection_alpha - 10)

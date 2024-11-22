@@ -1,7 +1,6 @@
-from PyQt5.QtWidgets import (QMainWindow, QVBoxLayout, QHBoxLayout, QGridLayout,
-                             QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem,
-                             QSizePolicy, QScrollArea, QLayout, QGroupBox, QFormLayout)
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QGridLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem, QSizePolicy, QScrollArea, QGroupBox, QFormLayout
 from game_widget import GameWidget
+from statistics_widget import StatisticsWidget
 from config import Config
 
 class MainWindow(QMainWindow):
@@ -16,13 +15,11 @@ class MainWindow(QMainWindow):
         main_widget = QWidget()
         main_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         layout = QGridLayout()
-        layout.setSizeConstraint(QLayout.SetDefaultConstraint)
 
         scroll_area = QScrollArea()
         param_panel = QWidget()
         param_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         param_layout = QVBoxLayout()
-        param_layout.setSpacing(3)
 
         # Group 1: Simulation Parameters
         simulation_params_group = QGroupBox("Simulation Parameters")
@@ -30,7 +27,7 @@ class MainWindow(QMainWindow):
         self.cell_count_input = QLineEdit(str(self.config.cell_count))
         self.infected_count_input = QLineEdit(str(self.config.infected_count))
         self.latent_prob_input = QLineEdit(str(self.config.latent_prob))
-        self.cycles_per_day_input = QLineEdit(str(self.config.cycles_per_day))
+        self.cycles_per_day_input = QLineEdit(str(self.config.iterations_per_day))
         simulation_params_layout.addRow(QLabel("Cell Count"), self.cell_count_input)
         simulation_params_layout.addRow(QLabel("Infected Count"), self.infected_count_input)
         simulation_params_layout.addRow(QLabel("Latent Percentage"), self.latent_prob_input)
@@ -45,7 +42,7 @@ class MainWindow(QMainWindow):
         self.infection_period_input = QLineEdit(str(self.config.infection_period))
         self.latent_to_active_probability_input = QLineEdit(str(self.config.latent_to_active_prob))
         self.infection_probability_latent_input = QLineEdit(str(self.config.infection_prob_latent))
-        self.infection_probability_active_input = QLineEdit(str(self.config.infection_prob_active))
+        self.infection_probability_active_input = QLineEdit(str(self.config.infection_prob_healthy))
         self.death_probability_input = QLineEdit(str(self.config.death_probability))
         infection_params_layout.addRow(QLabel("Infection Probability"), self.infection_probability_input)
         infection_params_layout.addRow(QLabel("Infection Period"), self.infection_period_input)
@@ -72,41 +69,38 @@ class MainWindow(QMainWindow):
         controls_group = QGroupBox("Controls")
         controls_layout = QVBoxLayout()
         auto_stop_checkbox = QCheckBox("Stop when no infected")
-        auto_stop_checkbox.setFixedHeight(20)
         auto_stop_checkbox.setChecked(True)
         auto_stop_checkbox.stateChanged.connect(self.toggle_auto_stop)
         controls_layout.addWidget(auto_stop_checkbox)
 
         show_radii_checkbox = QCheckBox("Show Infection Radius")
-        show_radii_checkbox.setFixedHeight(20)
         show_radii_checkbox.setChecked(True)
         self.radius_visibility = True
         show_radii_checkbox.stateChanged.connect(self.toggle_radius_visibility)
         show_radii_checkbox.stateChanged.connect(self.set_radius_visibility)
         controls_layout.addWidget(show_radii_checkbox)
 
+        button_height = 35
+
         start_button = QPushButton("Start/Restart")
-        start_button.setFixedHeight(30)
+        start_button.setFixedHeight(button_height)
         start_button.clicked.connect(self.start_simulation)
         controls_layout.addWidget(start_button)
 
         pause_button = QPushButton("Pause/Resume")
-        pause_button.setFixedHeight(30)
+        pause_button.setFixedHeight(button_height)
         pause_button.clicked.connect(self.pause_simulation)
         controls_layout.addWidget(pause_button)
 
         save_button = QPushButton("Save Plot")
-        save_button.setFixedHeight(30)
+        save_button.setFixedHeight(button_height)
         save_button.clicked.connect(self.save_plot)
         controls_layout.addWidget(save_button)
 
         toggle_button = QPushButton("Show/Hide Animation")
-        toggle_button.setFixedHeight(30)
+        toggle_button.setFixedHeight(button_height)
         toggle_button.clicked.connect(self.toggle_animation_visibility)
         controls_layout.addWidget(toggle_button)
-
-        self.daily_stats_label = QLabel("Day 0\nInfected: 0\nLatent: 0\nDead: 0")
-        controls_layout.addWidget(self.daily_stats_label)
 
         controls_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         controls_group.setLayout(controls_layout)
@@ -119,19 +113,24 @@ class MainWindow(QMainWindow):
         layout.addWidget(scroll_area, 0, 0, 2, 1)
 
         self.game_widget = GameWidget(self)
-        self.game_widget.setVisible(True)
-        self.game_widget.daily_stats_label = self.daily_stats_label
         layout.addWidget(self.game_widget, 0, 1)
-        layout.addWidget(self.game_widget.canvas, 1, 1)
+
+        self.plot_widget = StatisticsWidget(self, config=self.config)
+        scroll_area_plot = QScrollArea()
+        scroll_area_plot.setWidgetResizable(True)
+        scroll_area_plot.setWidget(self.plot_widget)
+        layout.addWidget(scroll_area_plot, 1, 1)
 
         main_widget.setLayout(layout)
         self.setCentralWidget(main_widget)
+
+        self.game_widget.statistics_updated.connect(self.plot_widget.add_data)
 
     def start_simulation(self):
         self.config.cell_count = int(self.cell_count_input.text())
         self.config.infected_count = int(self.infected_count_input.text())
         self.config.latent_prob = float(self.latent_prob_input.text())
-        self.config.cycles_per_day = int(self.cycles_per_day_input.text())
+        self.config.iterations_per_day = int(self.cycles_per_day_input.text())
         self.config.infection_probability = float(self.infection_probability_input.text())
         self.config.infection_radius = int(self.infection_radius_input.text())
         self.config.infection_period = int(self.infection_period_input.text())
@@ -143,7 +142,7 @@ class MainWindow(QMainWindow):
         self.config.cell_size = int(self.cell_size_input.text())
 
         self.game_widget.start_simulation(self.config)
-
+        self.plot_widget.reset_data()
         self.set_radius_visibility()
 
     def pause_simulation(self):
@@ -153,7 +152,7 @@ class MainWindow(QMainWindow):
         self.game_widget.toggle_auto_stop()
 
     def save_plot(self):
-        self.game_widget.save_plot()
+        self.plot_widget.save_plot()
 
     def toggle_animation_visibility(self):
         self.game_widget.setVisible(not self.game_widget.isVisible())
@@ -162,4 +161,4 @@ class MainWindow(QMainWindow):
         self.radius_visibility = not self.radius_visibility
 
     def set_radius_visibility(self):
-        self.game_widget.set_radius(self.radius_visibility)
+        self.game_widget.set_radius_visible(self.radius_visibility)

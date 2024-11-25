@@ -56,7 +56,7 @@ class CellAutomaton:
             self._update_infections()
 
         # Call _spread_infections infection_checks_per_day times a day
-        if current_iteration % (self.config.iterations_per_day // self.config.infection_checks_per_day) == 0:
+        if current_iteration % self.config.infection_checks_per_iter == 0:
             self._spread_infections()
 
         self._move_cells()

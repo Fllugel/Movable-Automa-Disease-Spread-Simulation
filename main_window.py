@@ -40,10 +40,12 @@ class MainWindow(QMainWindow):
         self.infected_count_input = QLineEdit(str(self.config.infected_count))
         self.latent_prob_input = QLineEdit(str(self.config.latent_prob))
         self.cycles_per_day_input = QLineEdit(str(self.config.iterations_per_day))
+        self.infection_checks_per_iter_input = QLineEdit(str(self.config.infection_checks_per_iter))  # New location
         simulation_params_layout.addRow(QLabel("Cell Count"), self.cell_count_input)
         simulation_params_layout.addRow(QLabel("Infected Count"), self.infected_count_input)
         simulation_params_layout.addRow(QLabel("Latent Percentage"), self.latent_prob_input)
         simulation_params_layout.addRow(QLabel("Cycles per Day"), self.cycles_per_day_input)
+        simulation_params_layout.addRow(QLabel("Checks Infection each (n) Iteration n ="), self.infection_checks_per_iter_input)  # New location
         simulation_params_group.setLayout(simulation_params_layout)
         param_layout.addWidget(simulation_params_group)
 
@@ -164,6 +166,7 @@ class MainWindow(QMainWindow):
             self.config.infected_count = int(self.infected_count_input.text())
             self.config.latent_prob = float(self.latent_prob_input.text())
             self.config.iterations_per_day = int(self.cycles_per_day_input.text())
+            self.config.infection_checks_per_iter = int(self.infection_checks_per_iter_input.text())  # Read from new location
             self.config.infection_probability = float(self.infection_probability_input.text())
             self.config.infection_radius = int(self.infection_radius_input.text())
             self.config.infection_period = int(self.infection_period_input.text())

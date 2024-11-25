@@ -166,7 +166,8 @@ class MainWindow(QMainWindow):
             self.config.infected_count = int(self.infected_count_input.text())
             self.config.latent_prob = float(self.latent_prob_input.text())
             self.config.iterations_per_day = int(self.cycles_per_day_input.text())
-            self.config.infection_checks_per_iter = int(self.infection_checks_per_iter_input.text())  # Read from new location
+            self.config.infection_checks_per_iter = int(
+                self.infection_checks_per_iter_input.text())  # Read from new location
             self.config.infection_probability = float(self.infection_probability_input.text())
             self.config.infection_radius = int(self.infection_radius_input.text())
             self.config.infection_period = int(self.infection_period_input.text())

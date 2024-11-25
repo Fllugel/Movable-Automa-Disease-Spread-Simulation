@@ -92,10 +92,12 @@ class Cell:
                 self._infection_start_day = current_day
         elif self._state == CellState.ACTIVE:
             if current_day - self._infection_start_day >= self.infection_period:
-                self.set_state(CellState.LATENT)
-                self._infection_start_day = -1
-            elif random.random() < death_probability:
-                self.set_state(CellState.DEAD)
+                if random.random() < death_probability:
+                    self.set_state(CellState.DEAD)
+                else:
+                    self.set_state(CellState.LATENT)
+                    self._infection_start_day = -1
+
 
     def can_infect(self, other_cell, infection_radius):
         if self.state == CellState.ACTIVE and other_cell.state in [CellState.HEALTHY, CellState.LATENT]:

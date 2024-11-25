@@ -1,6 +1,7 @@
 import random
 import pygame
 from cell_state import CellState
+from shapely.geometry import Polygon, Point
 
 class Cell:
     MAX_SPEED = 2.0
@@ -59,7 +60,7 @@ class Cell:
     def is_active(self):
         return self._state != CellState.DEAD
 
-    def move(self, width, height):
+    def move(self, polygon: Polygon):
         if not self.is_active():
             return
 
@@ -72,18 +73,19 @@ class Cell:
         self._speed_x = max(-self.MAX_SPEED, min(self._speed_x, self.MAX_SPEED))
         self._speed_y = max(-self.MAX_SPEED, min(self._speed_y, self.MAX_SPEED))
 
+        # Save old position
+        old_x, old_y = self._x, self._y
+
         # Update position
         self._x += self._speed_x
         self._y += self._speed_y
 
-        # Handle boundaries with bounce
-        if self._x <= 0 or self._x >= width:
+        # Check if new position is within polygon
+        if not polygon.contains(Point(self._x, self._y)):
+            # Revert to old position and reverse velocity
+            self._x, self._y = old_x, old_y
             self._speed_x = -self._speed_x
-            self._x = max(0, min(self._x, width))
-
-        if self._y <= 0 or self._y >= height:
             self._speed_y = -self._speed_y
-            self._y = max(0, min(self._y, height))
 
     def update_infection(self, death_probability, latent_to_active_probability, current_day):
         if self._state == CellState.LATENT:
@@ -117,7 +119,8 @@ class Cell:
     def show_radius(self):
         self._infection_alpha = 255
 
-    def draw(self, screen, color_healthy, color_latent, color_active, color_dead, show_radius, infection_radius):
+    def draw(self, screen, color_healthy, color_latent, color_active, color_dead, show_radius, infection_radius, scale,
+             offset_x, offset_y):
         if self.state == CellState.DEAD:
             color = color_dead
         elif self.state == CellState.LATENT:
@@ -130,11 +133,14 @@ class Cell:
         # Ensure colors are consistent by converting them to the same format
         color = pygame.Color(*color)
 
-        pygame.draw.circle(screen, color, (int(self.x), int(self.y)), self.size)
+        scaled_x = int(self.x * scale + offset_x)
+        scaled_y = int(self.y * scale + offset_y)
+
+        pygame.draw.circle(screen, color, (scaled_x, scaled_y), int(self.size * scale))
 
         if show_radius and self._infection_alpha > 0:
             surface = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
-            surface.fill((0, 0, 0, 0))
-            pygame.draw.circle(surface, (255, 0, 0, self._infection_alpha), (int(self.x), int(self.y)), int(infection_radius), 1)
+            pygame.draw.circle(surface, (255, 0, 0, self._infection_alpha), (scaled_x, scaled_y),
+                               int(infection_radius * scale), 1)
             screen.blit(surface, (0, 0))
             self._infection_alpha = max(0, self._infection_alpha - 10)

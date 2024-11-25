@@ -3,12 +3,18 @@ from collections import defaultdict
 from cell import Cell
 from cell_state import CellState
 from config import Config
+import pygame
+from shapely.geometry import Polygon, Point
 
 class CellAutomaton:
     def __init__(self, config: Config):
         self.config = config
         self.width = 600
         self.height = 400
+        self.polygon = Polygon(self.config.polygon_points)
+        self.offset_x = 0
+        self.offset_y = 0
+        self.scale = 1.5
         self.cells = self._initialize_cells()
         self.infection_check_timer = defaultdict(lambda: -float('inf'))
         self.running = True
@@ -19,7 +25,13 @@ class CellAutomaton:
         self.show_radius = False
 
     def _initialize_cells(self):
-        cells = [Cell(random.randint(0, self.width), random.randint(0, self.height), self.config.cell_speed, size=self.config.cell_size, infection_period=self.config.infection_period) for _ in range(self.config.cell_count)]
+        cells = []
+        while len(cells) < self.config.cell_count:
+            x = random.uniform(self.polygon.bounds[0], self.polygon.bounds[2])
+            y = random.uniform(self.polygon.bounds[1], self.polygon.bounds[3])
+            if self.polygon.contains(Point(x, y)):
+                cell = Cell(x, y, self.config.cell_speed, size=self.config.cell_size, infection_period=self.config.infection_period)
+                cells.append(cell)
         for i in range(self.config.infected_count):
             cells[i].set_state(CellState.ACTIVE)
         for i in range(round(self.config.cell_count * self.config.latent_prob)):
@@ -55,7 +67,7 @@ class CellAutomaton:
 
     def _move_cells(self):
         for cell in self.cells:
-            cell.move(self.width, self.height)
+            cell.move(self.polygon)
 
     def _spread_infections(self):
         for cell in self.cells:
@@ -64,11 +76,21 @@ class CellAutomaton:
                     other_cell.infect(self.config.infection_prob_healthy, self.config.infection_prob_latent, self.config.infection_probability, self.current_day)
                     cell.show_radius()
 
-
     def draw(self, screen):
         screen.fill(self.background_color)
+
+        scaled_points = [
+            (
+                (x * self.scale + self.offset_x),
+                (y * self.scale + self.offset_y)
+            )
+            for x, y in self.polygon.exterior.coords
+        ]
+        pygame.draw.polygon(screen, (255, 255, 255), scaled_points, 1)
+
         for cell in self.cells:
-            cell.draw(screen, self.color_healthy, self.color_latent, self.color_active, self.color_dead, self.show_radius, self.config.infection_radius)
+            cell.draw(screen, self.color_healthy, self.color_latent, self.color_active, self.color_dead,
+                      self.show_radius, self.config.infection_radius, self.scale, self.offset_x, self.offset_y)
 
     def get_statistics(self):
         healthy = len([c for c in self.cells if c.state == CellState.HEALTHY])

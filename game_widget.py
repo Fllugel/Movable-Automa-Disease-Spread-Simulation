@@ -22,6 +22,10 @@ class GameWidget(QWidget):
         self.current_iteration = 0
         self.current_day = 0
         self.auto_stop_triggered = False
+        self.scale = 1.5
+        self.offset_x = 0
+        self.offset_y = 0
+        self.polygon_points = []
 
     def _initialize_pygame(self):
         pygame.init()
@@ -39,6 +43,9 @@ class GameWidget(QWidget):
 
     def start_simulation(self, config: Config):
         self.cell_automaton = CellAutomaton(config)
+        self.cell_automaton.offset_x = self.offset_x
+        self.cell_automaton.offset_y = self.offset_y
+        self.cell_automaton.scale = self.scale
         self.current_day = 0
         self.config = config
         self.is_paused = False
@@ -68,8 +75,39 @@ class GameWidget(QWidget):
             healthy, infected, latent, dead = self.cell_automaton.get_statistics()
             self.statistics_updated.emit(self.current_day, healthy, latent, infected, dead)
 
+    def set_polygon(self, polygon_points):
+        self.polygon_points = polygon_points
+
+        if self.polygon_points:
+            min_x = min(point[0] for point in self.polygon_points)
+            max_x = max(point[0] for point in self.polygon_points)
+            min_y = min(point[1] for point in self.polygon_points)
+            max_y = max(point[1] for point in self.polygon_points)
+
+            polygon_width = max_x - min_x
+            polygon_height = max_y - min_y
+
+            self.offset_x = (self.width() - polygon_width * self.scale) / 2 - min_x * self.scale
+            self.offset_y = (self.height() - polygon_height * self.scale) / 2 - min_y * self.scale
+
+        self.update_pygame_screen()
+        self.update()
+
+    def update_pygame_screen(self):
+        self.screen.fill((0, 0, 0))
+        if hasattr(self, 'polygon_points') and self.polygon_points:
+            scaled_points = [
+                (
+                    (x * self.scale + self.offset_x),
+                    (y * self.scale + self.offset_y)
+                )
+                for x, y in self.polygon_points
+            ]
+            pygame.draw.polygon(self.screen, (255, 255, 255), scaled_points, 1)
+
     def paintEvent(self, event):
         painter = QPainter(self)
-        image = pygame.image.tostring(self.screen, 'RGB')
-        qt_image = QImage(image, 600, 400, QImage.Format_RGB888)
-        painter.drawImage(0, 0, qt_image)
+        if self.screen:
+            image = pygame.image.tostring(self.screen, 'RGB')
+            qt_image = QImage(image, 600, 400, QImage.Format_RGB888)
+            painter.drawImage(0, 0, qt_image)

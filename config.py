@@ -1,11 +1,14 @@
 class Config:
-    def __init__(self, cell_count=500, infected_count=1, latent_prob=0.25, iterations_per_day=10,
+    def __init__(self, polygon_points=None, cell_count=50, infected_count=1, latent_prob=0.25, iterations_per_day=10,
                  infection_probability=0.25, infection_radius=10, infection_period=30,
                  latent_to_active_prob=0, infection_prob_latent=0.05, infection_prob_healthy=0.1,
                  cell_speed=0.5, death_probability=0, cell_size=3, infection_checks_per_day = 0.5, show_radius=True,
                  color_healthy=(127, 179, 213), color_latent=(203, 157, 240),
                  color_active=(255, 100, 100), color_dead=(0, 0, 0),
                  background_color=(0, 0, 0)):
+        if polygon_points is None:
+            polygon_points = [(0, 0), (100, 0), (100, 100), (0, 100)]
+        self.polygon_points = polygon_points
         self.show_radius = show_radius
         self.infection_checks_per_day = infection_checks_per_day
         self.cell_count = cell_count

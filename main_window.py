@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QGridLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem, QSizePolicy, QScrollArea, QGroupBox, QFormLayout
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QGridLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem, QSizePolicy, QScrollArea, QGroupBox, QFormLayout, QMessageBox
 from game_widget import GameWidget
 from statistics_widget import StatisticsWidget
 from config import Config
@@ -20,6 +20,18 @@ class MainWindow(QMainWindow):
         param_panel = QWidget()
         param_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         param_layout = QVBoxLayout()
+
+        # Group 0: Polygon Parameters
+        polygon_group = QGroupBox("Polygon Parameters")
+        polygon_layout = QFormLayout()
+        self.polygon_points_input = QLineEdit("[(0, 0), (100, 0), (100, 100), (0, 100)]")
+        polygon_layout.addRow(QLabel("Polygon Bounds (list of tuples for x and y):"), self.polygon_points_input)
+        create_polygon_button = QPushButton("Create Polygon")
+        create_polygon_button.setFixedHeight(30)
+        create_polygon_button.clicked.connect(self.generate_polygon)
+        polygon_layout.addRow(create_polygon_button)
+        polygon_group.setLayout(polygon_layout)
+        param_layout.addWidget(polygon_group)
 
         # Group 1: Simulation Parameters
         simulation_params_group = QGroupBox("Simulation Parameters")
@@ -126,24 +138,47 @@ class MainWindow(QMainWindow):
 
         self.game_widget.statistics_updated.connect(self.plot_widget.add_data)
 
-    def start_simulation(self):
-        self.config.cell_count = int(self.cell_count_input.text())
-        self.config.infected_count = int(self.infected_count_input.text())
-        self.config.latent_prob = float(self.latent_prob_input.text())
-        self.config.iterations_per_day = int(self.cycles_per_day_input.text())
-        self.config.infection_probability = float(self.infection_probability_input.text())
-        self.config.infection_radius = int(self.infection_radius_input.text())
-        self.config.infection_period = int(self.infection_period_input.text())
-        self.config.latent_to_active_prob = float(self.latent_to_active_probability_input.text())
-        self.config.infection_prob_latent = float(self.infection_probability_latent_input.text())
-        self.config.infection_prob_active = float(self.infection_probability_active_input.text())
-        self.config.cell_speed = float(self.cell_speed_input.text())
-        self.config.death_probability = float(self.death_probability_input.text())
-        self.config.cell_size = int(self.cell_size_input.text())
+    def generate_polygon(self):
+        try:
+            polygon_input = self.polygon_points_input.text().strip()
+            polygon_input = polygon_input.replace(" ", "")
+            if polygon_input.startswith("[") and polygon_input.endswith("]"):
+                polygon_input = polygon_input[2:-2]
+                self.current_polygon = [tuple(map(float, point.split(","))) for point in polygon_input.split("),(")]
+                if len(self.current_polygon) < 3:
+                    raise ValueError("Polygon must have at least 3 sides.")
 
-        self.game_widget.start_simulation(self.config)
-        self.plot_widget.reset_data()
-        self.set_radius_visibility()
+                self.game_widget.set_polygon(self.current_polygon)
+            else:
+                raise ValueError("Invalid input format.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Failed to create polygon: {e}")
+
+    def start_simulation(self):
+        try:
+            if not hasattr(self, "current_polygon") or not self.current_polygon:
+                raise ValueError("Polygon is not generated. Please generate a polygon before starting the simulation.")
+
+            self.config.polygon_points = self.current_polygon
+            self.config.cell_count = int(self.cell_count_input.text())
+            self.config.infected_count = int(self.infected_count_input.text())
+            self.config.latent_prob = float(self.latent_prob_input.text())
+            self.config.iterations_per_day = int(self.cycles_per_day_input.text())
+            self.config.infection_probability = float(self.infection_probability_input.text())
+            self.config.infection_radius = int(self.infection_radius_input.text())
+            self.config.infection_period = int(self.infection_period_input.text())
+            self.config.latent_to_active_prob = float(self.latent_to_active_probability_input.text())
+            self.config.infection_prob_latent = float(self.infection_probability_latent_input.text())
+            self.config.infection_prob_active = float(self.infection_probability_active_input.text())
+            self.config.cell_speed = float(self.cell_speed_input.text())
+            self.config.death_probability = float(self.death_probability_input.text())
+            self.config.cell_size = int(self.cell_size_input.text())
+
+            self.game_widget.start_simulation(self.config)
+            self.plot_widget.reset_data()
+            self.set_radius_visibility()
+        except ValueError as e:
+            QMessageBox.critical(self, "Error", str(e))
 
     def pause_simulation(self):
         self.game_widget.toggle_pause()

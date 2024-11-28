@@ -3,11 +3,12 @@ import pygame
 from cell_state import CellState
 from shapely.geometry import Polygon, Point
 
+
 class Cell:
     MAX_SPEED = 2.0
     SPEED_CHANGE_FACTOR = 0.01
 
-    def __init__(self, x, y, speed, size=3, infection_period=10):
+    def __init__(self, x, y, speed, size=0.3, infection_period=10):
         self._x = x
         self._y = y
         self._speed_x = random.uniform(-speed, speed)
@@ -100,7 +101,6 @@ class Cell:
                     self.set_state(CellState.LATENT)
                     self._infection_start_day = -1
 
-
     def can_infect(self, other_cell, infection_radius):
         if self.state == CellState.ACTIVE and other_cell.state in [CellState.HEALTHY, CellState.LATENT]:
             distance = ((self.x - other_cell.x) ** 2 + (self.y - other_cell.y) ** 2) ** 0.5
@@ -138,11 +138,11 @@ class Cell:
         scaled_x = int(self.x * scale + offset_x)
         scaled_y = int(self.y * scale + offset_y)
 
-        pygame.draw.circle(screen, color, (scaled_x, scaled_y), int(self.size * scale))
+        pygame.draw.circle(screen, color, (scaled_x, scaled_y), self.size * scale)
 
         if show_radius and self._infection_alpha > 0:
             surface = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
             pygame.draw.circle(surface, (255, 0, 0, self._infection_alpha), (scaled_x, scaled_y),
-                               int(infection_radius * scale), 1)
+                               (infection_radius * scale), 1)
             screen.blit(surface, (0, 0))
             self._infection_alpha = max(0, self._infection_alpha - 10)

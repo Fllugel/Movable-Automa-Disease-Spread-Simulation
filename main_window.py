@@ -1,7 +1,9 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QGridLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem, QSizePolicy, QScrollArea, QGroupBox, QFormLayout, QMessageBox
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QGridLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem, QSizePolicy, QScrollArea, QGroupBox, QFormLayout, QMessageBox, QComboBox
 from game_widget import GameWidget
 from statistics_widget import StatisticsWidget
 from config import Config
+from polygon import Polygon
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -11,6 +13,7 @@ class MainWindow(QMainWindow):
         self.setMinimumSize(800, 600)
 
         self.config = Config()
+        self.polygon = Polygon()
 
         main_widget = QWidget()
         main_widget.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -20,18 +23,6 @@ class MainWindow(QMainWindow):
         param_panel = QWidget()
         param_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         param_layout = QVBoxLayout()
-
-        # Group 0: Polygon Parameters
-        polygon_group = QGroupBox("Polygon Parameters")
-        polygon_layout = QFormLayout()
-        self.polygon_points_input = QLineEdit("[(0, 0), (100, 0), (100, 100), (0, 100)]")
-        polygon_layout.addRow(QLabel("Polygon Bounds (list of tuples for x and y):"), self.polygon_points_input)
-        create_polygon_button = QPushButton("Create Polygon")
-        create_polygon_button.setFixedHeight(30)
-        create_polygon_button.clicked.connect(self.generate_polygon)
-        polygon_layout.addRow(create_polygon_button)
-        polygon_group.setLayout(polygon_layout)
-        param_layout.addWidget(polygon_group)
 
         # Group 1: Simulation Parameters
         simulation_params_group = QGroupBox("Simulation Parameters")
@@ -99,6 +90,23 @@ class MainWindow(QMainWindow):
         show_hide_checkbox.stateChanged.connect(self.toggle_animation_visibility)
         controls_layout.addWidget(show_hide_checkbox)
 
+        # Group 5: Polygon Type
+        polygon_group = QGroupBox("Polygon Type")
+        polygon_layout = QFormLayout()
+        self.polygon_type_combo = QComboBox()
+        self.polygon_type_combo.addItem("Trench")
+        self.polygon_type_combo.addItem("Office")
+        self.polygon_type_combo.addItem("Park")
+        polygon_layout.addRow(QLabel("Select Polygon Type:"), self.polygon_type_combo)
+
+        # Button to generate the selected polygon
+        create_polygon_button = QPushButton("Create Polygon")
+        create_polygon_button.setFixedHeight(30)
+        create_polygon_button.clicked.connect(self.create_polygon)
+        polygon_layout.addRow(create_polygon_button)
+        polygon_group.setLayout(polygon_layout)
+        param_layout.addWidget(polygon_group)
+
         button_height = 35
 
         start_button = QPushButton("Start/Restart")
@@ -140,28 +148,27 @@ class MainWindow(QMainWindow):
 
         self.game_widget.statistics_updated.connect(self.plot_widget.add_data)
 
-    def generate_polygon(self):
+    def create_polygon(self):
         try:
-            polygon_input = self.polygon_points_input.text().strip()
-            polygon_input = polygon_input.replace(" ", "")
-            if polygon_input.startswith("[") and polygon_input.endswith("]"):
-                polygon_input = polygon_input[2:-2]
-                self.current_polygon = [tuple(map(float, point.split(","))) for point in polygon_input.split("),(")]
-                if len(self.current_polygon) < 3:
-                    raise ValueError("Polygon must have at least 3 sides.")
-
-                self.game_widget.set_polygon(self.current_polygon)
+            if self.polygon_type_combo.currentText() == "Trench":
+                self.polygon.current_polygon = Polygon.create_trench()
+            elif self.polygon_type_combo.currentText() == "Office":
+                self.polygon.current_polygon = Polygon.create_office()
+            elif self.polygon_type_combo.currentText() == "Park":
+                self.polygon.current_polygon = Polygon.create_park()
             else:
-                raise ValueError("Invalid input format.")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Failed to create polygon: {e}")
+                raise ValueError("Unknown polygon type.")
+
+            self.game_widget.set_polygon(self.polygon.current_polygon)
+        except ValueError as e:
+            QMessageBox.critical(self, "Error", str(e))
 
     def start_simulation(self):
         try:
-            if not hasattr(self, "current_polygon") or not self.current_polygon:
-                raise ValueError("Polygon is not generated. Please generate a polygon before starting the simulation.")
+            if not self.polygon.current_polygon:
+                raise ValueError("Polygon not selected. Please select a polygon for the simulation.")
 
-            self.config.polygon_points = self.current_polygon
+            self.config.polygon_points = self.polygon.current_polygon
             self.config.cell_count = int(self.cell_count_input.text())
             self.config.infected_count = int(self.infected_count_input.text())
             self.config.latent_prob = float(self.latent_prob_input.text())
@@ -176,7 +183,7 @@ class MainWindow(QMainWindow):
             self.config.infection_prob_active = float(self.infection_probability_active_input.text())
             self.config.cell_speed = float(self.cell_speed_input.text())
             self.config.death_probability = float(self.death_probability_input.text())
-            self.config.cell_size = int(self.cell_size_input.text())
+            self.config.cell_size = float(self.cell_size_input.text())
 
             self.game_widget.start_simulation(self.config)
             self.plot_widget.reset_data()

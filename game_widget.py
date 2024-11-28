@@ -5,6 +5,7 @@ from PyQt5.QtGui import QPainter, QImage
 from cell_automaton import CellAutomaton
 from config import Config
 
+
 class GameWidget(QWidget):
     statistics_updated = pyqtSignal(int, int, int, int, int)
 
@@ -22,7 +23,7 @@ class GameWidget(QWidget):
         self.current_iteration = 0
         self.current_day = 0
         self.auto_stop_triggered = False
-        self.scale = 1.5
+        self.scale = 1.0
         self.offset_x = 0
         self.offset_y = 0
         self.polygon_points = []
@@ -49,6 +50,12 @@ class GameWidget(QWidget):
         self.current_day = 0
         self.config = config
         self.is_paused = False
+
+        if self.polygon_points:
+            self.reset_camera()
+
+        self.auto_stop_triggered = False
+        self.current_iteration = 0
 
     def game_loop(self):
         if self.cell_automaton and not self.is_paused:
@@ -89,7 +96,6 @@ class GameWidget(QWidget):
 
             self.offset_x = (self.width() - polygon_width * self.scale) / 2 - min_x * self.scale
             self.offset_y = (self.height() - polygon_height * self.scale) / 2 - min_y * self.scale
-
         self.update_pygame_screen()
         self.update()
 
@@ -111,3 +117,42 @@ class GameWidget(QWidget):
             image = pygame.image.tostring(self.screen, 'RGB')
             qt_image = QImage(image, 600, 400, QImage.Format_RGB888)
             painter.drawImage(0, 0, qt_image)
+
+    def wheelEvent(self, event):
+        delta = event.angleDelta().y()
+        scale_factor = 1.1 if delta > 0 else 0.9
+        old_scale = self.scale
+        self.scale *= scale_factor
+
+        if self.polygon_points:
+            center_x = sum(x for x, y in self.polygon_points) / len(self.polygon_points)
+            center_y = sum(y for x, y in self.polygon_points) / len(self.polygon_points)
+
+            self.offset_x -= (center_x * (self.scale - old_scale))
+            self.offset_y -= (center_y * (self.scale - old_scale))
+
+        self.update_pygame_screen()
+        self.update()
+
+    def reset_camera(self):
+        if self.polygon_points:
+            min_x = min(point[0] for point in self.polygon_points)
+            max_x = max(point[0] for point in self.polygon_points)
+            min_y = min(point[1] for point in self.polygon_points)
+            max_y = max(point[1] for point in self.polygon_points)
+
+            polygon_width = max_x - min_x
+            polygon_height = max_y - min_y
+
+            screen_width = self.width()
+            screen_height = self.height()
+
+            scale_x = screen_width / polygon_width
+            scale_y = screen_height / polygon_height
+            self.scale = min(scale_x, scale_y) * 0.9
+
+            self.offset_x = (screen_width - polygon_width * self.scale) / 2 - min_x * self.scale
+            self.offset_y = (screen_height - polygon_height * self.scale) / 2 - min_y * self.scale
+
+        self.update_pygame_screen()
+        self.update()

@@ -96,7 +96,7 @@ class MainWindow(QMainWindow):
         self.polygon_type_combo = QComboBox()
         self.polygon_type_combo.addItem("Trench")
         self.polygon_type_combo.addItem("Office")
-        self.polygon_type_combo.addItem("Park")
+        self.polygon_type_combo.addItem("Open Area")
         polygon_layout.addRow(QLabel("Select Polygon Type:"), self.polygon_type_combo)
 
         # Button to generate the selected polygon
@@ -154,8 +154,8 @@ class MainWindow(QMainWindow):
                 self.polygon.current_polygon = Polygon.create_trench()
             elif self.polygon_type_combo.currentText() == "Office":
                 self.polygon.current_polygon = Polygon.create_office()
-            elif self.polygon_type_combo.currentText() == "Park":
-                self.polygon.current_polygon = Polygon.create_park()
+            elif self.polygon_type_combo.currentText() == "Open Area":
+                self.polygon.current_polygon = Polygon.create_open_area()
             else:
                 raise ValueError("Unknown polygon type.")
 

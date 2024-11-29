@@ -1,5 +1,5 @@
 class Config:
-    def __init__(self, polygon_points=None, cell_count=1000, infected_count=1, latent_prob=0.25, iterations_per_day=10,
+    def __init__(self, polygon_points=None, cell_count=1000, infected_count=1, latent_prob=0.25, iterations_per_day=26,
                  infection_probability=0.25, infection_radius=10, infection_period=48,
                  latent_to_active_prob=0, infection_prob_latent=0.06, infection_prob_healthy=0.1,
                  cell_speed=0.5, death_probability=0.104, cell_size=3, infection_checks_per_iter=20, show_radius=True,

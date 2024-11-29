@@ -49,7 +49,7 @@ class Polygon:
 
     @staticmethod
     def create_park():
-        return [(0, 0), (200, 0), (200, 200), (0, 200)]
+        return [(0, 0), (600, 0), (600, 400), (0, 400)]
 
     # def generate_polygon(self, polygon_type):
     #     try:

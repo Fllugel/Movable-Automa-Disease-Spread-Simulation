@@ -8,7 +8,7 @@ class Cell:
     MAX_SPEED = 2.0
     SPEED_CHANGE_FACTOR = 0.01
 
-    def __init__(self, x, y, speed, size=0.3, infection_period=10):
+    def __init__(self, x, y, speed, size=3, infection_period=10):
         self._x = x
         self._y = y
         self._speed_x = random.uniform(-speed, speed)

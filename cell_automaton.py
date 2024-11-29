@@ -14,7 +14,7 @@ class CellAutomaton:
         self.polygon = Polygon(self.config.polygon_points)
         self.offset_x = 0
         self.offset_y = 0
-        self.scale = 1.5
+        self.scale = 1
         self.cells = self._initialize_cells()
         self.infection_check_timer = defaultdict(lambda: -float('inf'))
         self.running = True

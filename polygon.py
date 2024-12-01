@@ -44,7 +44,7 @@ class Polygon:
 
     @staticmethod
     def create_office():
-        return [(0, 0), (120, 0), (120, 80), (0, 80)], 4.0
+        return [(0, 0), (140, 0), (140, 100), (0, 100)], 2.0
 
     @staticmethod
     def create_open_area():

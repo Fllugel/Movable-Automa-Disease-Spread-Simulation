@@ -99,11 +99,7 @@ class MainWindow(QMainWindow):
         self.polygon_type_combo.addItem("Open Area")
         polygon_layout.addRow(QLabel("Select Polygon Type:"), self.polygon_type_combo)
 
-        # Button to generate the selected polygon
-        create_polygon_button = QPushButton("Create Polygon")
-        create_polygon_button.setFixedHeight(30)
-        create_polygon_button.clicked.connect(self.create_polygon)
-        polygon_layout.addRow(create_polygon_button)
+        self.polygon_type_combo.currentIndexChanged.connect(self.create_polygon)
         polygon_group.setLayout(polygon_layout)
         param_layout.addWidget(polygon_group)
 
@@ -137,6 +133,9 @@ class MainWindow(QMainWindow):
         self.game_widget = GameWidget(self)
         layout.addWidget(self.game_widget, 0, 1)
 
+        self.polygon_type_combo.setCurrentText("Open Area")
+        self.create_polygon()
+
         self.plot_widget = StatisticsWidget(self, config=self.config)
         scroll_area_plot = QScrollArea()
         scroll_area_plot.setWidgetResizable(True)
@@ -151,15 +150,15 @@ class MainWindow(QMainWindow):
     def create_polygon(self):
         try:
             if self.polygon_type_combo.currentText() == "Trench":
-                self.polygon.current_polygon = Polygon.create_trench()
+                self.polygon.current_polygon, self.scale = Polygon.create_trench()
             elif self.polygon_type_combo.currentText() == "Office":
-                self.polygon.current_polygon = Polygon.create_office()
+                self.polygon.current_polygon, self.scale = Polygon.create_office()
             elif self.polygon_type_combo.currentText() == "Open Area":
-                self.polygon.current_polygon = Polygon.create_open_area()
+                self.polygon.current_polygon, self.scale = Polygon.create_open_area()
             else:
                 raise ValueError("Unknown polygon type.")
 
-            self.game_widget.set_polygon(self.polygon.current_polygon)
+            self.game_widget.set_polygon(self.polygon.current_polygon, self.scale)
         except ValueError as e:
             QMessageBox.critical(self, "Error", str(e))
 

@@ -82,8 +82,9 @@ class GameWidget(QWidget):
             healthy, infected, latent, dead = self.cell_automaton.get_statistics()
             self.statistics_updated.emit(self.current_day, healthy, latent, infected, dead)
 
-    def set_polygon(self, polygon_points):
+    def set_polygon(self, polygon_points, scale):
         self.polygon_points = polygon_points
+        self.scale = scale
 
         if self.polygon_points:
             min_x = min(point[0] for point in self.polygon_points)
@@ -117,22 +118,6 @@ class GameWidget(QWidget):
             image = pygame.image.tostring(self.screen, 'RGB')
             qt_image = QImage(image, 600, 400, QImage.Format_RGB888)
             painter.drawImage(0, 0, qt_image)
-
-    def wheelEvent(self, event):
-        delta = event.angleDelta().y()
-        scale_factor = 1.1 if delta > 0 else 0.9
-        old_scale = self.scale
-        self.scale *= scale_factor
-
-        if self.polygon_points:
-            center_x = sum(x for x, y in self.polygon_points) / len(self.polygon_points)
-            center_y = sum(y for x, y in self.polygon_points) / len(self.polygon_points)
-
-            self.offset_x -= (center_x * (self.scale - old_scale))
-            self.offset_y -= (center_y * (self.scale - old_scale))
-
-        self.update_pygame_screen()
-        self.update()
 
     def reset_camera(self):
         if self.polygon_points:

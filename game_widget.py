@@ -51,9 +51,6 @@ class GameWidget(QWidget):
         self.config = config
         self.is_paused = False
 
-        if self.polygon_points:
-            self.reset_camera()
-
         self.auto_stop_triggered = False
         self.current_iteration = 0
 
@@ -118,26 +115,3 @@ class GameWidget(QWidget):
             image = pygame.image.tostring(self.screen, 'RGB')
             qt_image = QImage(image, 600, 400, QImage.Format_RGB888)
             painter.drawImage(0, 0, qt_image)
-
-    def reset_camera(self):
-        if self.polygon_points:
-            min_x = min(point[0] for point in self.polygon_points)
-            max_x = max(point[0] for point in self.polygon_points)
-            min_y = min(point[1] for point in self.polygon_points)
-            max_y = max(point[1] for point in self.polygon_points)
-
-            polygon_width = max_x - min_x
-            polygon_height = max_y - min_y
-
-            screen_width = self.width()
-            screen_height = self.height()
-
-            scale_x = screen_width / polygon_width
-            scale_y = screen_height / polygon_height
-            self.scale = min(scale_x, scale_y) * 0.9
-
-            self.offset_x = (screen_width - polygon_width * self.scale) / 2 - min_x * self.scale
-            self.offset_y = (screen_height - polygon_height * self.scale) / 2 - min_y * self.scale
-
-        self.update_pygame_screen()
-        self.update()

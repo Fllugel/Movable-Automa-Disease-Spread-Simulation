@@ -117,10 +117,11 @@ class Cell:
                     self.set_state(CellState.LATENT)
                     self._infection_start_day = -1
 
-    def can_infect(self, other_cell, infection_radius):
+    def can_infect(self, other_cell, infection_radius, current_day):
         if self.state == CellState.ACTIVE and other_cell.state in [CellState.HEALTHY, CellState.LATENT]:
             distance = ((self.x - other_cell.x) ** 2 + (self.y - other_cell.y) ** 2) ** 0.5
-            return distance <= infection_radius
+            infection_prob = self.infection_probability(current_day)
+            return distance <= infection_radius and random.random() < infection_prob
         return False
 
     def infect(self, infection_prob_healthy, infection_prob_latent, infection_probability, current_day):
@@ -162,3 +163,18 @@ class Cell:
                                (infection_radius * scale), 1)
             screen.blit(surface, (0, 0))
             self._infection_alpha = max(0, self._infection_alpha - 10)
+
+    @staticmethod
+    def prob_contagiousness(day, peak_day=5, scale=0.5):
+        """Обчислює ймовірність зараження залежно від дня хвороби."""
+        if day < peak_day:  # Фаза зростання
+            return (day / peak_day) * scale
+        elif peak_day <= day <= 2 * peak_day:  # Фаза спаду
+            return scale * (1 - (day - peak_day) / peak_day)
+        return 0
+
+    def infection_probability(self, current_day):
+        if self._state != CellState.ACTIVE:
+            return 0
+        day_of_infection = current_day - self._infection_start_day
+        return self.prob_contagiousness(day_of_infection)

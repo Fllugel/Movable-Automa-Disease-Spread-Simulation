@@ -72,7 +72,7 @@ class CellAutomaton:
     def _spread_infections(self):
         for cell in self.cells:
             for other_cell in self.cells:
-                if cell.can_infect(other_cell, self.config.infection_radius):
+                if cell.can_infect(other_cell, self.config.infection_radius, self.current_day):
                     other_cell.infect(self.config.infection_prob_healthy, self.config.infection_prob_latent, self.config.infection_probability, self.current_day)
                     cell.show_radius()
 

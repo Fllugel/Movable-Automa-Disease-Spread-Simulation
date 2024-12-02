@@ -83,10 +83,26 @@ class Cell:
 
         # Check if new position is within polygon
         if not polygon.contains(Point(self._x, self._y)):
-            # Revert to old position and reverse velocity
+            import math
+            # Повертаємося до старої позиції
             self._x, self._y = old_x, old_y
-            self._speed_x = -self._speed_x
-            self._speed_y = -self._speed_y
+
+            # Збереження поточної швидкості
+            speed = math.sqrt(self._speed_x ** 2 + self._speed_y ** 2)
+
+            # У 10% випадків додаємо випадкове збурення
+            if random.random() < 0.1:
+                self._speed_x += random.uniform(-0.5, 0.5)
+                self._speed_y += random.uniform(-0.5, 0.5)
+
+                # Нормалізація швидкості, щоб зберігати її постійною
+                new_speed = math.sqrt(self._speed_x ** 2 + self._speed_y ** 2)
+                self._speed_x *= speed / new_speed
+                self._speed_y *= speed / new_speed
+            else:
+                # Стандартне відбиття
+                self._speed_x = -self._speed_x
+                self._speed_y = -self._speed_y
 
     def update_infection(self, death_probability, latent_to_active_probability, current_day):
         if self._state == CellState.LATENT:

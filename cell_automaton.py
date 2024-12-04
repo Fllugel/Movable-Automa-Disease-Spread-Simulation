@@ -5,6 +5,7 @@ from cell_state import CellState
 from config import Config
 import pygame
 from shapely.geometry import Polygon, Point
+import numpy as np
 
 class CellAutomaton:
     def __init__(self, config: Config):
@@ -46,9 +47,6 @@ class CellAutomaton:
         self.background_color = self.config.background_color
 
     def update(self, current_iteration, current_day):
-        if not self.running:
-            return
-
         self.current_day = current_day
 
         # Call _update_infections once a day
@@ -70,11 +68,19 @@ class CellAutomaton:
             cell.move(self.polygon)
 
     def _spread_infections(self):
-        for cell in self.cells:
-            for other_cell in self.cells:
-                if cell.can_infect(other_cell, self.config.infection_radius, self.current_day):
-                    other_cell.infect(self.config.infection_prob_healthy, self.config.infection_prob_latent, self.config.infection_probability, self.current_day)
-                    cell.show_radius()
+        positions = np.array([(cell.x, cell.y) for cell in self.cells])
+        states = np.array([cell.state for cell in self.cells])
+        infection_radius_sq = self.config.infection_radius ** 2
+
+        for i, cell in enumerate(self.cells):
+            if cell.state == CellState.ACTIVE:
+                distances_sq = np.sum((positions - positions[i]) ** 2, axis=1)
+                within_radius = (distances_sq <= infection_radius_sq) & (distances_sq > 0)
+                for j in np.where(within_radius)[0]:
+                    other_cell = self.cells[j]
+                    if cell.can_infect(other_cell, self.config.infection_radius):
+                        other_cell.infect(self.config.infection_prob_healthy, self.config.infection_prob_latent, self.config.infection_probability, self.current_day)
+                        cell.show_radius()
 
     def draw(self, screen):
         screen.fill(self.background_color)

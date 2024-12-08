@@ -23,6 +23,7 @@ class Cell:
         self.infection_period = infection_period
         self.randomize_movement = True
         self._infection_alpha = 0
+        self.current_day = 0
 
     # Properties for encapsulation
     @property
@@ -58,6 +59,11 @@ class Cell:
         }
         if new_state not in valid_transitions[self._state]:
             raise ValueError(f"Invalid state transition: {self._state} to {new_state}")
+
+        if new_state == CellState.ACTIVE:
+            self._infection_start_day = self.current_day
+        else:
+            self._infection_start_day = -1
 
         self._state = new_state
 
@@ -106,7 +112,8 @@ class Cell:
                 self._speed_x = -self._speed_x
                 self._speed_y = -self._speed_y
 
-    def update_infection(self, death_probability, latent_to_active_probability, current_day):
+    def update_state(self, death_probability, latent_to_active_probability, current_day):
+        self.current_day = current_day
         if self._state == CellState.LATENT:
             if random.random() < latent_to_active_probability:
                 self.set_state(CellState.ACTIVE)

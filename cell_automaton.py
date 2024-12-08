@@ -51,7 +51,7 @@ class CellAutomaton:
 
         # Call _update_infections once a day
         if current_iteration % self.config.iterations_per_day == 0:
-            self._update_infections()
+            self._update_cells()
 
         # Call _spread_infections infection_checks_per_day times a day
         if current_iteration % self.config.infection_checks_per_iter == 0:
@@ -59,9 +59,9 @@ class CellAutomaton:
 
         self._move_cells()
 
-    def _update_infections(self):
+    def _update_cells(self):
         for cell in self.cells:
-            cell.update_infection(self.config.death_probability, self.config.latent_to_active_prob, self.current_day)
+            cell.update_state(self.config.death_probability, self.config.latent_to_active_prob, self.current_day)
 
     def _move_cells(self):
         for cell in self.cells:

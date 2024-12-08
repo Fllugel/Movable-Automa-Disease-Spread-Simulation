@@ -3,7 +3,6 @@ import pygame
 from cell_state import CellState
 from shapely.geometry import Polygon, Point
 
-
 class Cell:
     MAX_SPEED = 2.0
     SPEED_CHANGE_FACTOR = 0.01

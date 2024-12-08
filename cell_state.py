@@ -1,6 +1,7 @@
 from enum import Enum
 
 class CellState(Enum):
-    SUSCEPTIBLE = 1
-    INFECTED = 2
-    RECOVERED = 3
+    HEALTHY = 1
+    LATENT = 2
+    ACTIVE = 3
+    DEAD = 4

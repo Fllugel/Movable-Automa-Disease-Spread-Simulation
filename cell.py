@@ -1,4 +1,7 @@
+import math
 import random
+
+import numpy as np
 import pygame
 from cell_state import CellState
 from shapely.geometry import Polygon, Point
@@ -83,7 +86,6 @@ class Cell:
 
         # Check if new position is within polygon
         if not polygon.contains(Point(self._x, self._y)):
-            import math
             # Повертаємося до старої позиції
             self._x, self._y = old_x, old_y
 
@@ -91,7 +93,7 @@ class Cell:
             speed = math.sqrt(self._speed_x ** 2 + self._speed_y ** 2)
 
             # У 10% випадків додаємо випадкове збурення
-            if random.random() < 0.1:
+            if random.random() < 0.2:
                 self._speed_x += random.uniform(-0.5, 0.5)
                 self._speed_y += random.uniform(-0.5, 0.5)
 
@@ -108,7 +110,6 @@ class Cell:
         if self._state == CellState.LATENT:
             if random.random() < latent_to_active_probability:
                 self.set_state(CellState.ACTIVE)
-                self._infection_start_day = current_day
         elif self._state == CellState.ACTIVE:
             if current_day - self._infection_start_day >= self.infection_period:
                 if random.random() < death_probability:
@@ -123,9 +124,7 @@ class Cell:
             return distance <= infection_radius
         return False
 
-    def infect(self, infection_prob_healthy, infection_prob_latent, infection_probability, current_day):
-        self._infection_start_day = current_day
-
+    def infect(self, infection_prob_healthy, infection_prob_latent, infection_probability):
         if random.random() < infection_probability:
             if self.state == CellState.HEALTHY:
                 if random.random() < infection_prob_healthy:
@@ -162,3 +161,30 @@ class Cell:
                                (infection_radius * scale), 1)
             screen.blit(surface, (0, 0))
             self._infection_alpha = max(0, self._infection_alpha - 10)
+
+
+    @staticmethod
+    def prob_contagiousness(day):
+        contagiousness = (150, 90, 50, 0.5)
+        in_con = 1
+        l = in_con if in_con == 1 else in_con * 0.2  # Модифікований рівень контакту
+
+        c, a, b, z = contagiousness
+        if day <= c:
+            x = (c - day) / a
+            if x ** 2 <= 1:  # Перевірка на валідність виразу під коренем
+                res = (1 - x ** 2) ** 0.5
+            else:
+                res = 0
+        else:
+            x = (day - c) / (b * (1 + (0.2 * (in_con - 1))))
+            res = np.exp(-abs(x) ** 3)
+
+        return res * z * l
+
+
+    def calculate_infection_probability(self):
+        day_of_infection = self.current_day - self._infection_start_day
+        print(self, self.state, self._infection_start_day, self.prob_contagiousness(day_of_infection))
+        return self.prob_contagiousness(day_of_infection)
+

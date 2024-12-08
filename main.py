@@ -1,51 +1,29 @@
-import pygame
 import sys
-from grid import Grid
-from panel import Panel
-
-# Game settings
-WIDTH = 800  # Width of the window
-HEIGHT = 600  # Height of the window
-PANEL_WIDTH = 200
-FPS = 60  # FPS CLOCK
-INFECTION_DISPLAY_DURATION = 0.5  # Duration to show infection radius
-CELL_SIZE = 5  # Size of each cell
-
-# Panel basic values
-NUM_CELLS = 500  # Total number of cells
-INFECTED_COUNT = 1  # Number of initially infected cells
-CELL_SPEED = 0.5  # Speed of cell movement (allowing lower speeds)
-INFECTION_PROBABILITY = 0.1  # Basic infection probability
-INFECTION_RADIUS = 10  # Basic infection radius
-INFECTED_PERIOD = 10  # Time, for how long is the cell will be infected
-
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((WIDTH + PANEL_WIDTH, HEIGHT))
-    pygame.display.set_caption("Cellular Automaton - Infection Simulation")
-
-    # Create the grid with specified settings
-    grid = Grid(WIDTH, HEIGHT, NUM_CELLS, cell_size=CELL_SIZE, infected_count=INFECTED_COUNT, cell_speed=CELL_SPEED, infection_probability=INFECTION_PROBABILITY, infection_distance=INFECTION_RADIUS, infection_display_duration=INFECTION_DISPLAY_DURATION, infection_period=INFECTED_PERIOD)
-
-    panel = Panel(PANEL_WIDTH, HEIGHT, grid)
-
-    clock = pygame.time.Clock()
-
-    while True:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-
-            panel.handle_event(event)
-
-        grid.update()
-
-        screen.fill((0, 0, 0))  # Clear the screen
-        panel.draw(screen)
-        grid.draw(screen, PANEL_WIDTH)
-        pygame.display.flip()
-        clock.tick(FPS)
+from PyQt5.QtWidgets import (QApplication)
+from PyQt5.QtGui import QPalette, QColor
+from main_window import MainWindow
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    app.setStyle("Fusion")
+
+    palette = QPalette()
+    palette.setColor(QPalette.Window, QColor(255, 255, 255))
+    palette.setColor(QPalette.WindowText, QColor(0, 0, 0))
+    palette.setColor(QPalette.Base, QColor(255, 255, 255))
+    palette.setColor(QPalette.AlternateBase, QColor(240, 240, 240))
+    palette.setColor(QPalette.ToolTipBase, QColor(255, 255, 255))
+    palette.setColor(QPalette.ToolTipText, QColor(0, 0, 0))
+    palette.setColor(QPalette.Text, QColor(0, 0, 0))
+    palette.setColor(QPalette.Button, QColor(255, 255, 255))
+    palette.setColor(QPalette.ButtonText, QColor(0, 0, 0))
+    palette.setColor(QPalette.BrightText, QColor(255, 0, 0))
+    palette.setColor(QPalette.Link, QColor(0, 0, 255))
+    palette.setColor(QPalette.Highlight, QColor(0, 120, 215))
+    palette.setColor(QPalette.HighlightedText, QColor(255, 255, 255))
+
+    app.setPalette(palette)
+
+    window = MainWindow()
+    window.show()
+    sys.exit(app.exec_())

@@ -79,7 +79,7 @@ class CellAutomaton:
                 for j in np.where(within_radius)[0]:
                     other_cell = self.cells[j]
                     if cell.can_infect(other_cell, self.config.infection_radius):
-                        other_cell.infect(self.config.infection_prob_healthy, self.config.infection_prob_latent, self.config.infection_probability, self.current_day)
+                        other_cell.infect(self.config.infection_prob_healthy, self.config.infection_prob_latent, cell.calculate_infection_probability())
                         cell.show_radius()
 
     def draw(self, screen):

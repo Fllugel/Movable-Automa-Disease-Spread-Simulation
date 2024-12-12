@@ -6,22 +6,13 @@ class StatisticsWidget(QWidget):
     def __init__(self, parent=None, config=None):
         super().__init__(parent)
         self.config = config
-
-        # Створення першого графіка
-        self.figure1, self.ax1 = plt.subplots()
-        self.canvas1 = FigureCanvas(self.figure1)
-        self.canvas1.setFixedSize(600, 350)
-        self.canvas1.setStyleSheet("background-color:white;")
-        self.figure1.patch.set_facecolor('none')
-        self.set_plot_background(self.ax1)
-
-        # Створення другого графіка
-        self.figure2, self.ax2 = plt.subplots()
-        self.canvas2 = FigureCanvas(self.figure2)
-        self.canvas2.setFixedSize(600, 350)
-        self.canvas2.setStyleSheet("background-color:white;")
-        self.figure2.patch.set_facecolor('none')
-        self.set_plot_background(self.ax2)
+        self.figure, (self.ax1, self.ax2) = plt.subplots(2, 1, figsize=(6, 7))
+        self.canvas = FigureCanvas(self.figure)
+        self.canvas.setFixedSize(600, 500)
+        self.canvas.setStyleSheet("background-color:white;")
+        self.canvas.setContentsMargins(0, 0, 0, 0)
+        self.figure.patch.set_facecolor('none')
+        self.set_plot_background()
 
         self.time_data = []
         self.healthy_data = []
@@ -42,22 +33,22 @@ class StatisticsWidget(QWidget):
 
         layout = QVBoxLayout()
         layout.addLayout(label_layout)
-        layout.addWidget(self.canvas1)
-        layout.addWidget(self.canvas2)
+        layout.addWidget(self.canvas)
         self.setLayout(layout)
 
-    def set_plot_background(self, ax):
-        ax.set_facecolor('white')
-        for spine in ax.spines.values():
-            spine.set_color('black')
-        ax.tick_params(axis='both', colors='black')
-        ax.xaxis.label.set_color('black')
-        ax.yaxis.label.set_color('black')
+    def set_plot_background(self):
+        for ax in [self.ax1, self.ax2]:
+            ax.set_facecolor('white')
+            for spine in ax.spines.values():
+                spine.set_color('black')
+            ax.tick_params(axis='both', colors='black')
+            ax.xaxis.label.set_color('black')
+            ax.yaxis.label.set_color('black')
 
     def update_plot(self):
-        # Оновлення першого графіка
+        # Update the first plot (the classic stacked plot)
         self.ax1.clear()
-        self.set_plot_background(self.ax1)
+        self.set_plot_background()
 
         total_population = max((h + l + i + d for h, l, i, d in
                                 zip(self.healthy_data, self.latent_data, self.infected_data, self.dead_data)),
@@ -78,26 +69,23 @@ class StatisticsWidget(QWidget):
             self.ax1.fill_between(self.time_data, dead_latent_infected, [total_population] * len(dead_latent_infected),
                                  color=[c/255 for c in self.config.color_healthy], label='Susceptible')
 
-        legend1 = self.ax1.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
-        for text in legend1.get_texts():
-            text.set_color((1, 1, 1))
-        self.canvas1.draw()
+        self.ax1.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
-        # Оновлення другого графіка
+        # Update the second plot (two independent lines: one for latent and one for active)
         self.ax2.clear()
-        self.set_plot_background(self.ax2)
+        self.set_plot_background()
 
-        infectious_latent = [i + l for i, l in zip(self.infected_data, self.latent_data)]
+        # Plot the latent population (blue color)
+        self.ax2.plot(self.time_data, self.latent_data, label='Latent', color=[c/255 for c in self.config.color_latent], linestyle='-', linewidth=2)
 
-        self.ax2.fill_between(self.time_data, 0, self.infected_data, color=[c/255 for c in self.config.color_active],
-                             label='Infectious')
-        self.ax2.fill_between(self.time_data, self.infected_data, infectious_latent, color=[c/255 for c in self.config.color_latent],
-                             label='Latent')
+        # Plot the active population (red color, only infected)
+        self.ax2.plot(self.time_data, self.infected_data, label='Active (Infected)', color=[c/255 for c in self.config.color_active], linestyle='-', linewidth=2)
 
-        legend2 = self.ax2.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
-        for text in legend2.get_texts():
-            text.set_color((1, 1, 1))
-        self.canvas2.draw()
+        self.ax2.set_ylabel('Population')
+        self.ax2.set_xlabel('Time')
+        self.ax2.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
+        self.canvas.draw()
 
         self.update_labels()
 
@@ -108,8 +96,7 @@ class StatisticsWidget(QWidget):
         self.dead_label.setText(f"Dead: {self.dead_data[-1] if self.dead_data else 0}")
 
     def save_plot(self):
-        self.figure1.savefig('simulation_plot1.png', bbox_inches='tight', dpi=300)
-        self.figure2.savefig('simulation_plot2.png', bbox_inches='tight', dpi=300)
+        self.figure.savefig('simulation_plot.png', bbox_inches='tight', dpi=300)
 
     def add_data(self, day, healthy, latent, infected, dead):
         self.time_data.append(day)

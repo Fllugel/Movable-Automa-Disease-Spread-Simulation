@@ -115,9 +115,9 @@ class MainWindow(QMainWindow):
         pause_button.clicked.connect(self.pause_simulation)
         controls_layout.addWidget(pause_button)
 
-        save_button = QPushButton("Save Plot")
+        save_button = QPushButton("Save Data and Plot")
         save_button.setFixedHeight(button_height)
-        save_button.clicked.connect(self.save_plot)
+        save_button.clicked.connect(self.save_data_and_plot)
         controls_layout.addWidget(save_button)
 
         controls_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
@@ -196,8 +196,8 @@ class MainWindow(QMainWindow):
     def toggle_auto_stop(self):
         self.game_widget.toggle_auto_stop()
 
-    def save_plot(self):
-        self.plot_widget.save_plot()
+    def save_data_and_plot(self):
+        self.plot_widget.save_data_and_plot()
 
     def toggle_animation_visibility(self):
         self.game_widget.setVisible(not self.game_widget.isVisible())

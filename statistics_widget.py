@@ -1,5 +1,7 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QInputDialog
 import matplotlib.pyplot as plt
+import pandas as pd
+import os
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 
 class StatisticsWidget(QWidget):
@@ -95,8 +97,55 @@ class StatisticsWidget(QWidget):
         self.infected_label.setText(f"Infected: {self.infected_data[-1] if self.infected_data else 0}")
         self.dead_label.setText(f"Dead: {self.dead_data[-1] if self.dead_data else 0}")
 
-    def save_plot(self):
-        self.figure.savefig('simulation_plot.png', bbox_inches='tight', dpi=300)
+    def save_data_and_plot(self):
+        if not self.time_data:
+            print("No data to save.")
+            return
+
+        unique_days = set()
+        filtered_data = {"Day": [], "Healthy": [], "Latent": [], "Infected": [], "Dead": []}
+
+        for i, day in enumerate(self.time_data):
+            if day not in unique_days:
+                unique_days.add(day)
+                filtered_data["Day"].append(self.time_data[i])
+                filtered_data["Healthy"].append(self.healthy_data[i])
+                filtered_data["Latent"].append(self.latent_data[i])
+                filtered_data["Infected"].append(self.infected_data[i])
+                filtered_data["Dead"].append(self.dead_data[i])
+
+        options = QFileDialog.Options()
+        folder = QFileDialog.getExistingDirectory(self, "Select folder to save", options=options)
+        if not folder:
+            return
+
+        folder_name, ok = QInputDialog.getText(self, "Enter folder name", "Folder name:")
+        if not ok or not folder_name:
+            print("Folder name was not entered.")
+            return
+
+        full_folder_path = os.path.join(folder, folder_name)
+        try:
+            os.makedirs(full_folder_path, exist_ok=True)
+        except Exception as e:
+            print(f"Error creating folder: {e}")
+            return
+
+        df = pd.DataFrame(filtered_data)
+        excel_path = os.path.join(full_folder_path, f"{folder_name}_data.xlsx")
+        try:
+            df.to_excel(excel_path, index=False)
+            print(f"Data successfully saved to file {excel_path}.")
+        except Exception as e:
+            print(f"Error saving data: {e}")
+
+        plot_path_ax1 = os.path.join(full_folder_path, f"{folder_name}_plot.png")
+        try:
+            fig1 = self.ax1.figure
+            fig1.savefig(plot_path_ax1, bbox_inches='tight', dpi=300)
+            print(f"Plots successfully saved to {plot_path_ax1}.")
+        except Exception as e:
+            print(f"Error saving plots: {e}")
 
     def add_data(self, day, healthy, latent, infected, dead):
         self.time_data.append(day)

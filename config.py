@@ -1,7 +1,7 @@
 class Config:
     def __init__(self, polygon_points=None, cell_count=1500, infected_count=1, latent_prob=0.25, iterations_per_day=3,
                  infection_probability=0.25, infection_radius=10, infection_period=225,
-                 latent_to_active_prob=0, infection_prob_latent=0.06, infection_prob_healthy=0.1,
+                 latent_to_active_prob=0, infection_prob_latent=0.14, infection_prob_healthy=0.1,
                  cell_speed=0.5, death_probability=0.104, cell_size=3, infection_checks_per_iter=20, show_radius=True,
                  color_healthy=(127, 179, 213), color_latent=(203, 157, 240),
                  color_active=(255, 100, 100), color_dead=(0, 0, 0),

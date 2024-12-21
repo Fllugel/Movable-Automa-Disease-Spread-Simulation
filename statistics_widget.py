@@ -8,9 +8,9 @@ class StatisticsWidget(QWidget):
     def __init__(self, parent=None, config=None):
         super().__init__(parent)
         self.config = config
-        self.figure, (self.ax1, self.ax2) = plt.subplots(2, 1, figsize=(6, 7))
+        self.figure, (self.ax1, self.ax2, self.ax3) = plt.subplots(3, 1, figsize=(6, 10))
         self.canvas = FigureCanvas(self.figure)
-        self.canvas.setFixedSize(600, 500)
+        self.canvas.setFixedSize(600, 700)
         self.canvas.setStyleSheet("background-color:white;")
         self.canvas.setContentsMargins(0, 0, 0, 0)
         self.figure.patch.set_facecolor('none')
@@ -39,7 +39,7 @@ class StatisticsWidget(QWidget):
         self.setLayout(layout)
 
     def set_plot_background(self):
-        for ax in [self.ax1, self.ax2]:
+        for ax in [self.ax1, self.ax2, self.ax3]:
             ax.set_facecolor('white')
             for spine in ax.spines.values():
                 spine.set_color('black')
@@ -73,7 +73,7 @@ class StatisticsWidget(QWidget):
 
         self.ax1.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
-        # Update the second plot (two independent lines: one for latent and one for active)
+        # Update the second plot (three independent lines: latent, active, and dead)
         self.ax2.clear()
         self.set_plot_background()
 
@@ -81,11 +81,30 @@ class StatisticsWidget(QWidget):
         self.ax2.plot(self.time_data, self.latent_data, label='Latent', color=[c/255 for c in self.config.color_latent], linestyle='-', linewidth=2)
 
         # Plot the active population (red color, only infected)
-        self.ax2.plot(self.time_data, self.infected_data, label='Active (Infected)', color=[c/255 for c in self.config.color_active], linestyle='-', linewidth=2)
+        self.ax2.plot(self.time_data, self.infected_data, label='Active', color=[c/255 for c in self.config.color_active], linestyle='-', linewidth=2)
+
+        # Plot the dead population (black color)
+        self.ax2.plot(self.time_data, self.dead_data, label='Dead', color=[c/255 for c in self.config.color_dead], linestyle='-', linewidth=2)
 
         self.ax2.set_ylabel('Population')
-        self.ax2.set_xlabel('Time')
+        # self.ax2.set_xlabel('Time')
         self.ax2.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
+        # Update the third plot (percentage of latent, infected, and dead)
+        self.ax3.clear()
+        self.set_plot_background()
+
+        percentages_latent = [(l / total_population) * 100 if total_population > 0 else 0 for l in self.latent_data]
+        percentages_infected = [(i / total_population) * 100 if total_population > 0 else 0 for i in self.infected_data]
+        percentages_dead = [(d / total_population) * 100 if total_population > 0 else 0 for d in self.dead_data]
+
+        self.ax3.plot(self.time_data, percentages_latent, label='Latent (%)', color=[c/255 for c in self.config.color_latent], linestyle='-', linewidth=2)
+        self.ax3.plot(self.time_data, percentages_infected, label='Active (%)', color=[c/255 for c in self.config.color_active], linestyle='-', linewidth=2)
+        self.ax3.plot(self.time_data, percentages_dead, label='Dead (%)', color=[c/255 for c in self.config.color_dead], linestyle='-', linewidth=2)
+
+        self.ax3.set_ylabel('Percentage (%)')
+        self.ax3.set_xlabel('Time')
+        self.ax3.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         self.canvas.draw()
 

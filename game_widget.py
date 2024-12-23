@@ -27,6 +27,7 @@ class GameWidget(QWidget):
         self.offset_x = 0
         self.offset_y = 0
         self.polygon_points = []
+        self.simulation_data = []
 
     def _initialize_pygame(self):
         pygame.init()
@@ -50,15 +51,14 @@ class GameWidget(QWidget):
         self.current_day = 0
         self.config = config
         self.is_paused = False
-
         self.auto_stop_triggered = False
         self.current_iteration = 0
+        self.simulation_data = []
 
     def game_loop(self):
         if self.cell_automaton and not self.is_paused:
             self.current_iteration += 1
 
-            # Update the current day based on iterations_per_day
             if self.current_iteration % self.config.iterations_per_day == 0:
                 self.current_day += 1
 
@@ -78,6 +78,22 @@ class GameWidget(QWidget):
         if self.cell_automaton:
             healthy, infected, latent, dead = self.cell_automaton.get_statistics()
             self.statistics_updated.emit(self.current_day, healthy, latent, infected, dead)
+            self.simulation_data.append({
+                'day': self.current_day,
+                'healthy': healthy,
+                'latent': latent,
+                'infected': infected,
+                'dead': dead
+            })
+
+    def get_simulation_data(self):
+        return self.simulation_data
+
+    def no_infected(self):
+        return not any(data['infected'] for data in self.simulation_data)
+
+    def days_passed(self):
+        return self.current_day
 
     def set_polygon(self, polygon_points, scale):
         self.polygon_points = polygon_points

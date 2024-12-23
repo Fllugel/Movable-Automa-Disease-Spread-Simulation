@@ -5,7 +5,7 @@ class Config:
                  cell_speed=0.5, death_probability=0.104, cell_size=3, infection_checks_per_iter=20, show_radius=True,
                  color_healthy=(127, 179, 213), color_latent=(203, 157, 240),
                  color_active=(255, 100, 100), color_dead=(0, 0, 0),
-                 background_color=(0, 0, 0)):
+                 background_color=(0, 0, 0), num_runs=1, max_days=1000):
         if not polygon_points:
             polygon_points = [(0, 0), (100, 0), (100, 100), (0, 100)]
         self.polygon_points = polygon_points
@@ -15,7 +15,6 @@ class Config:
         self.infected_count = infected_count
         self.latent_prob = latent_prob
         self.iterations_per_day = iterations_per_day
-        # self.infection_probability = infection_probability
         self.infection_radius = infection_radius
         self.infection_period = infection_period
         self.latent_to_active_prob = latent_to_active_prob
@@ -29,3 +28,5 @@ class Config:
         self.color_active = color_active
         self.color_dead = color_dead
         self.background_color = background_color
+        self.num_runs = num_runs
+        self.max_days = max_days

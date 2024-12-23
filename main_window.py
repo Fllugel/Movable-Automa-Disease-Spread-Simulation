@@ -1,4 +1,5 @@
-from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QGridLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, QSpacerItem, QSizePolicy, QScrollArea, QGroupBox, QFormLayout, QMessageBox, QComboBox
+from PyQt5.QtWidgets import QMainWindow, QVBoxLayout, QGridLayout, QWidget, QLineEdit, QLabel, QPushButton, QCheckBox, \
+    QSpacerItem, QSizePolicy, QScrollArea, QGroupBox, QFormLayout, QMessageBox, QComboBox
 from game_widget import GameWidget
 from statistics_widget import StatisticsWidget
 from config import Config
@@ -31,29 +32,28 @@ class MainWindow(QMainWindow):
         self.infected_count_input = QLineEdit(str(self.config.infected_count))
         self.latent_prob_input = QLineEdit(str(self.config.latent_prob))
         self.cycles_per_day_input = QLineEdit(str(self.config.iterations_per_day))
-        self.infection_checks_per_iter_input = QLineEdit(str(self.config.infection_checks_per_iter))  # New location
+        self.infection_checks_per_iter_input = QLineEdit(str(self.config.infection_checks_per_iter))
         simulation_params_layout.addRow(QLabel("Cell Count"), self.cell_count_input)
         simulation_params_layout.addRow(QLabel("Infected Count"), self.infected_count_input)
         simulation_params_layout.addRow(QLabel("Latent Percentage"), self.latent_prob_input)
         simulation_params_layout.addRow(QLabel("Cycles per Day"), self.cycles_per_day_input)
-        simulation_params_layout.addRow(QLabel("Checks Infection each (n) Iteration n ="), self.infection_checks_per_iter_input)  # New location
+        simulation_params_layout.addRow(QLabel("Checks Infection each (n) Iteration n ="),
+                                        self.infection_checks_per_iter_input)
         simulation_params_group.setLayout(simulation_params_layout)
         param_layout.addWidget(simulation_params_group)
 
         # Group 2: Infection Parameters
         infection_params_group = QGroupBox("Infection Parameters")
         infection_params_layout = QFormLayout()
-        # self.infection_probability_input = QLineEdit(str(self.config.infection_probability))
-        # self.infection_period_input = QLineEdit(str(self.config.infection_period))
         self.latent_to_active_probability_input = QLineEdit(str(self.config.latent_to_active_prob))
         self.infection_probability_latent_input = QLineEdit(str(self.config.infection_prob_latent))
         self.infection_probability_active_input = QLineEdit(str(self.config.infection_prob_healthy))
         self.death_probability_input = QLineEdit(str(self.config.death_probability))
-        # infection_params_layout.addRow(QLabel("Infection Probability"), self.infection_probability_input)
-        # infection_params_layout.addRow(QLabel("Infection Period"), self.infection_period_input)
         infection_params_layout.addRow(QLabel("Latent to Active Probability"), self.latent_to_active_probability_input)
-        infection_params_layout.addRow(QLabel("Infection Probability (Latent)"), self.infection_probability_latent_input)
-        infection_params_layout.addRow(QLabel("Infection Probability (Active)"), self.infection_probability_active_input)
+        infection_params_layout.addRow(QLabel("Infection Probability (Latent)"),
+                                       self.infection_probability_latent_input)
+        infection_params_layout.addRow(QLabel("Infection Probability (Active)"),
+                                       self.infection_probability_active_input)
         infection_params_layout.addRow(QLabel("Death Probability"), self.death_probability_input)
         infection_params_group.setLayout(infection_params_layout)
         param_layout.addWidget(infection_params_group)
@@ -103,6 +103,22 @@ class MainWindow(QMainWindow):
         polygon_group.setLayout(polygon_layout)
         param_layout.addWidget(polygon_group)
 
+        # Group 6: Multiple Runs
+        multiple_runs_group = QGroupBox("Multiple Runs")
+        multiple_runs_layout = QFormLayout()
+
+        self.num_runs_input = QLineEdit(str(self.config.num_runs))
+        self.max_days_input = QLineEdit(str(self.config.max_days))
+        self.stop_on_no_infected_checkbox = QCheckBox("Stop when no infected")
+        self.stop_on_no_infected_checkbox.setChecked(True)
+
+        multiple_runs_layout.addRow(QLabel("Number of Runs"), self.num_runs_input)
+        multiple_runs_layout.addRow(QLabel("Max Days per Run"), self.max_days_input)
+        multiple_runs_layout.addRow(self.stop_on_no_infected_checkbox)
+
+        multiple_runs_group.setLayout(multiple_runs_layout)
+        param_layout.addWidget(multiple_runs_group)
+
         button_height = 35
 
         start_button = QPushButton("Start/Restart")
@@ -119,6 +135,11 @@ class MainWindow(QMainWindow):
         save_button.setFixedHeight(button_height)
         save_button.clicked.connect(self.save_data_and_plot)
         controls_layout.addWidget(save_button)
+
+        start_multiple_button = QPushButton("Start Multiple Simulations")
+        start_multiple_button.setFixedHeight(button_height)
+        start_multiple_button.clicked.connect(self.start_multiple_simulations)
+        controls_layout.addWidget(start_multiple_button)
 
         controls_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         controls_group.setLayout(controls_layout)
@@ -172,11 +193,8 @@ class MainWindow(QMainWindow):
             self.config.infected_count = int(self.infected_count_input.text())
             self.config.latent_prob = float(self.latent_prob_input.text())
             self.config.iterations_per_day = int(self.cycles_per_day_input.text())
-            self.config.infection_checks_per_iter = int(
-                self.infection_checks_per_iter_input.text())  # Read from new location
-            # self.config.infection_probability = float(self.infection_probability_input.text())
+            self.config.infection_checks_per_iter = int(self.infection_checks_per_iter_input.text())
             self.config.infection_radius = int(self.infection_radius_input.text())
-            # self.config.infection_period = int(self.infection_period_input.text())
             self.config.latent_to_active_prob = float(self.latent_to_active_probability_input.text())
             self.config.infection_prob_latent = float(self.infection_probability_latent_input.text())
             self.config.infection_prob_active = float(self.infection_probability_active_input.text())
@@ -187,6 +205,28 @@ class MainWindow(QMainWindow):
             self.game_widget.start_simulation(self.config)
             self.plot_widget.reset_data()
             self.set_radius_visibility()
+        except ValueError as e:
+            QMessageBox.critical(self, "Error", str(e))
+
+    def start_multiple_simulations(self):
+        try:
+            self.config.num_runs = int(self.num_runs_input.text())
+            self.config.max_days = int(self.max_days_input.text())
+            stop_on_no_infected = self.stop_on_no_infected_checkbox.isChecked()
+
+            all_simulation_data = []
+
+            for _ in range(self.config.num_runs):
+                self.start_simulation()
+                # Add logic to stop simulation based on max days or no infected condition
+                # This is a placeholder for the actual stopping logic
+                if stop_on_no_infected and self.game_widget.no_infected():
+                    break
+                if self.game_widget.days_passed() >= self.config.max_days:
+                    break
+                all_simulation_data.append(self.game_widget.get_simulation_data())
+
+            self.plot_widget.add_multiple_simulation_data(all_simulation_data)
         except ValueError as e:
             QMessageBox.critical(self, "Error", str(e))
 

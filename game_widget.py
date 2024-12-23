@@ -8,6 +8,7 @@ from config import Config
 
 class GameWidget(QWidget):
     statistics_updated = pyqtSignal(int, int, int, int, int)
+    simulation_data_saved = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -27,7 +28,7 @@ class GameWidget(QWidget):
         self.offset_x = 0
         self.offset_y = 0
         self.polygon_points = []
-        self.simulation_data = []
+        self.current_simulation = 0
 
     def _initialize_pygame(self):
         pygame.init()
@@ -51,9 +52,10 @@ class GameWidget(QWidget):
         self.current_day = 0
         self.config = config
         self.is_paused = False
+
         self.auto_stop_triggered = False
         self.current_iteration = 0
-        self.simulation_data = []
+        self.current_simulation = 0
 
     def game_loop(self):
         if self.cell_automaton and not self.is_paused:
@@ -69,31 +71,20 @@ class GameWidget(QWidget):
 
             self.repaint()
 
-            if self.auto_stop_enabled and not self.auto_stop_triggered:
-                if self.cell_automaton.no_infected():
-                    self.toggle_pause()
-                    self.auto_stop_triggered = True
+            if self.current_day >= self.config.max_days or (
+                    self.auto_stop_enabled and self.cell_automaton.no_infected()):
+                self.toggle_pause()
+                self.simulation_data_saved.emit()
+                self.auto_stop_triggered = True
+
+                if self.current_simulation < self.config.num_runs:
+                    self.current_simulation += 1
+                    self.start_simulation(self.config)
 
     def update_statistics(self):
         if self.cell_automaton:
             healthy, infected, latent, dead = self.cell_automaton.get_statistics()
             self.statistics_updated.emit(self.current_day, healthy, latent, infected, dead)
-            self.simulation_data.append({
-                'day': self.current_day,
-                'healthy': healthy,
-                'latent': latent,
-                'infected': infected,
-                'dead': dead
-            })
-
-    def get_simulation_data(self):
-        return self.simulation_data
-
-    def no_infected(self):
-        return not any(data['infected'] for data in self.simulation_data)
-
-    def days_passed(self):
-        return self.current_day
 
     def set_polygon(self, polygon_points, scale):
         self.polygon_points = polygon_points

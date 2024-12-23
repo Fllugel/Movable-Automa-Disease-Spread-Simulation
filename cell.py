@@ -193,6 +193,5 @@ class Cell:
 
     def calculate_infection_probability(self):
         day_of_infection = self.current_day - self._infection_start_day
-        print(self, self.state, self._infection_start_day, self.prob_contagiousness(day_of_infection))
         return self.prob_contagiousness(day_of_infection)
 

@@ -166,6 +166,7 @@ class MainWindow(QMainWindow):
         main_widget.setLayout(layout)
         self.setCentralWidget(main_widget)
 
+        self.game_widget.simulation_data_saved.connect(self.plot_widget.save_current_simulation_data)
         self.game_widget.statistics_updated.connect(self.plot_widget.add_data)
 
     def create_polygon(self):
@@ -201,6 +202,8 @@ class MainWindow(QMainWindow):
             self.config.cell_speed = float(self.cell_speed_input.text())
             self.config.death_probability = float(self.death_probability_input.text())
             self.config.cell_size = float(self.cell_size_input.text())
+            self.config.num_runs = int(self.num_runs_input.text())
+            self.config.max_days = int(self.max_days_input.text())
 
             self.game_widget.start_simulation(self.config)
             self.plot_widget.reset_data()

@@ -127,6 +127,9 @@ class StatisticsWidget(QWidget):
         self.canvas.draw()
         self.update_labels()
 
+    def save_current_simulation_data(self):
+       print("Hi")
+
     def update_labels(self):
         self.healthy_label.setText(f"Healthy: {self.healthy_data[-1] if self.healthy_data else 0}")
         self.latent_label.setText(f"Latent: {self.latent_data[-1] if self.latent_data else 0}")

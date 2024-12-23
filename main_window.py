@@ -73,10 +73,6 @@ class MainWindow(QMainWindow):
         # Group 4: Controls
         controls_group = QGroupBox("Controls")
         controls_layout = QVBoxLayout()
-        auto_stop_checkbox = QCheckBox("Stop when no infected")
-        auto_stop_checkbox.setChecked(True)
-        auto_stop_checkbox.stateChanged.connect(self.toggle_auto_stop)
-        controls_layout.addWidget(auto_stop_checkbox)
 
         show_radii_checkbox = QCheckBox("Show Infection Radius")
         show_radii_checkbox.setChecked(True)
@@ -111,6 +107,7 @@ class MainWindow(QMainWindow):
         self.max_days_input = QLineEdit(str(self.config.max_days))
         self.stop_on_no_infected_checkbox = QCheckBox("Stop when no infected")
         self.stop_on_no_infected_checkbox.setChecked(True)
+        self.stop_on_no_infected_checkbox.stateChanged.connect(self.toggle_auto_stop)
 
         multiple_runs_layout.addRow(QLabel("Number of Runs"), self.num_runs_input)
         multiple_runs_layout.addRow(QLabel("Max Days per Run"), self.max_days_input)
@@ -135,11 +132,6 @@ class MainWindow(QMainWindow):
         save_button.setFixedHeight(button_height)
         save_button.clicked.connect(self.save_data_and_plot)
         controls_layout.addWidget(save_button)
-
-        start_multiple_button = QPushButton("Start Multiple Simulations")
-        start_multiple_button.setFixedHeight(button_height)
-        start_multiple_button.clicked.connect(self.start_multiple_simulations)
-        controls_layout.addWidget(start_multiple_button)
 
         controls_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         controls_group.setLayout(controls_layout)
@@ -208,28 +200,6 @@ class MainWindow(QMainWindow):
             self.game_widget.start_simulation(self.config)
             self.plot_widget.reset_data()
             self.set_radius_visibility()
-        except ValueError as e:
-            QMessageBox.critical(self, "Error", str(e))
-
-    def start_multiple_simulations(self):
-        try:
-            self.config.num_runs = int(self.num_runs_input.text())
-            self.config.max_days = int(self.max_days_input.text())
-            stop_on_no_infected = self.stop_on_no_infected_checkbox.isChecked()
-
-            all_simulation_data = []
-
-            for _ in range(self.config.num_runs):
-                self.start_simulation()
-                # Add logic to stop simulation based on max days or no infected condition
-                # This is a placeholder for the actual stopping logic
-                if stop_on_no_infected and self.game_widget.no_infected():
-                    break
-                if self.game_widget.days_passed() >= self.config.max_days:
-                    break
-                all_simulation_data.append(self.game_widget.get_simulation_data())
-
-            self.plot_widget.add_multiple_simulation_data(all_simulation_data)
         except ValueError as e:
             QMessageBox.critical(self, "Error", str(e))
 

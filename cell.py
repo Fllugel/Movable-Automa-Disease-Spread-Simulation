@@ -136,11 +136,13 @@ class Cell:
             if self.state == CellState.HEALTHY:
                 if random.random() < infection_prob_healthy:
                     self.set_state(CellState.ACTIVE)
+                else:
+                    self.set_state(CellState.LATENT)
             elif self.state == CellState.LATENT:
                 if random.random() < infection_prob_latent:
                     self.set_state(CellState.ACTIVE)
-            else:
-                self.set_state(CellState.LATENT)
+                else:
+                    self.set_state(CellState.LATENT)
 
     def show_radius(self):
         self._infection_alpha = 255

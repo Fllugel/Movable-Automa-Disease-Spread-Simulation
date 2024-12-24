@@ -8,7 +8,7 @@ from config import Config
 
 class GameWidget(QWidget):
     statistics_updated = pyqtSignal(int, int, int, int, int)
-    simulation_data_saved = pyqtSignal()
+    simulation_data_saved = pyqtSignal(int)
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -40,9 +40,6 @@ class GameWidget(QWidget):
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
-    def set_radius_visible(self, show_radius):
-        if self.cell_automaton:
-            self.cell_automaton.show_radius = show_radius
 
     def start_simulation(self, config: Config):
         self.cell_automaton = CellAutomaton(config)
@@ -74,7 +71,7 @@ class GameWidget(QWidget):
             if self.current_day >= self.config.max_days or (
                     self.auto_stop_enabled and self.cell_automaton.no_infected()):
                 self.toggle_pause()
-                self.simulation_data_saved.emit()
+                self.simulation_data_saved.emit(self.config.max_days * self.config.iterations_per_day)
                 self.auto_stop_triggered = True
 
                 if self.current_simulation < self.config.num_runs:

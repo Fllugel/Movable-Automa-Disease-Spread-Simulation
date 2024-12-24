@@ -76,9 +76,7 @@ class MainWindow(QMainWindow):
 
         show_radii_checkbox = QCheckBox("Show Infection Radius")
         show_radii_checkbox.setChecked(True)
-        self.radius_visibility = True
         show_radii_checkbox.stateChanged.connect(self.toggle_radius_visibility)
-        show_radii_checkbox.stateChanged.connect(self.set_radius_visibility)
         controls_layout.addWidget(show_radii_checkbox)
 
         show_hide_checkbox = QCheckBox("Show/Hide Animation")
@@ -95,7 +93,7 @@ class MainWindow(QMainWindow):
         self.polygon_type_combo.addItem("Open Area")
         polygon_layout.addRow(QLabel("Select Polygon Type:"), self.polygon_type_combo)
 
-        self.polygon_type_combo.currentIndexChanged.connect(self.create_polygon)
+        # self.polygon_type_combo.currentIndexChanged.connect(self.create_polygon)
         polygon_group.setLayout(polygon_layout)
         param_layout.addWidget(polygon_group)
 
@@ -178,6 +176,7 @@ class MainWindow(QMainWindow):
 
     def start_simulation(self):
         try:
+            self.create_polygon()  # Ensure polygon is created/updated on start/restart
             if not self.polygon.current_polygon:
                 raise ValueError("Polygon not selected. Please select a polygon for the simulation.")
 
@@ -199,7 +198,7 @@ class MainWindow(QMainWindow):
 
             self.game_widget.start_simulation(self.config)
             self.plot_widget.reset_data()
-            self.set_radius_visibility()
+            self.plot_widget.simulations_data = []
         except ValueError as e:
             QMessageBox.critical(self, "Error", str(e))
 
@@ -216,7 +215,4 @@ class MainWindow(QMainWindow):
         self.game_widget.setVisible(not self.game_widget.isVisible())
 
     def toggle_radius_visibility(self):
-        self.radius_visibility = not self.radius_visibility
-
-    def set_radius_visibility(self):
-        self.game_widget.set_radius_visible(self.radius_visibility)
+        self.config.show_radius = not self.config.show_radius

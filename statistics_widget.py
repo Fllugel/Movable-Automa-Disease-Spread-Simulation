@@ -125,7 +125,7 @@ class StatisticsWidget(QWidget):
 
         self.update_labels()
 
-    def save_current_simulation_data(self):
+    def save_current_simulation_data(self,max_days):
         simulation_data = {
             "time_data": self.time_data.copy(),
             "healthy_data": self.healthy_data.copy(),
@@ -135,7 +135,7 @@ class StatisticsWidget(QWidget):
         }
         self.simulations_data.append(simulation_data)
         self.reset_data()
-        self.update_average_plots()
+        self.update_average_plots(max_days)
 
     def update_labels(self):
         self.healthy_label.setText(f"Healthy: {self.healthy_data[-1] if self.healthy_data else 0}")
@@ -216,23 +216,39 @@ class StatisticsWidget(QWidget):
         self.update_plot()
         self.canvas.draw()
 
-    def update_average_plots(self):
+    def update_average_plots(self, max_days):
         if not self.simulations_data:
             return
 
         num_simulations = len(self.simulations_data)
+
         avg_time_data = self.simulations_data[0]["time_data"]
-        avg_healthy_data = [0] * len(avg_time_data)
-        avg_latent_data = [0] * len(avg_time_data)
-        avg_infected_data = [0] * len(avg_time_data)
-        avg_dead_data = [0] * len(avg_time_data)
+
+        avg_healthy_data = [0] * max_days
+        avg_latent_data = [0] * max_days
+        avg_infected_data = [0] * max_days
+        avg_dead_data = [0] * max_days
 
         for data in self.simulations_data:
-            for i in range(min(len(avg_time_data), len(data["healthy_data"]))):
-                avg_healthy_data[i] += data["healthy_data"][i]
-                avg_latent_data[i] += data["latent_data"][i]
-                avg_infected_data[i] += data["infected_data"][i]
-                avg_dead_data[i] += data["dead_data"][i]
+            time_data = data["time_data"]
+            healthy_data = data["healthy_data"]
+            latent_data = data["latent_data"]
+            infected_data = data["infected_data"]
+            dead_data = data["dead_data"]
+
+            # Extend data to max_days length
+            if len(time_data) < max_days:
+                time_data.extend([time_data[-1]] * (max_days - len(time_data)))
+                healthy_data.extend([healthy_data[-1]] * (max_days - len(healthy_data)))
+                latent_data.extend([latent_data[-1]] * (max_days - len(latent_data)))
+                infected_data.extend([infected_data[-1]] * (max_days - len(infected_data)))
+                dead_data.extend([dead_data[-1]] * (max_days - len(dead_data)))
+
+            for i in range(max_days):
+                avg_healthy_data[i] += healthy_data[i]
+                avg_latent_data[i] += latent_data[i]
+                avg_infected_data[i] += infected_data[i]
+                avg_dead_data[i] += dead_data[i]
 
         avg_healthy_data = [x / num_simulations for x in avg_healthy_data]
         avg_latent_data = [x / num_simulations for x in avg_latent_data]
@@ -246,20 +262,22 @@ class StatisticsWidget(QWidget):
                                 zip(avg_healthy_data, avg_latent_data, avg_infected_data, avg_dead_data)),
                                default=0)
         if total_population == 0:
-            total_population = len(avg_healthy_data)
+            total_population = max_days
 
         latent_infected = [l + i for l, i in zip(avg_latent_data, avg_infected_data)]
         dead_latent_infected = [l + i + d for l, i, d in zip(avg_latent_data, avg_infected_data, avg_dead_data)]
 
-        self.ax4.fill_between(avg_time_data, 0, avg_latent_data, color=[c/255 for c in self.config.color_latent],
-                             label='Latent')
-        self.ax4.fill_between(avg_time_data, avg_latent_data, latent_infected, color=[c/255 for c in self.config.color_active],
-                             label='Infectious')
-        self.ax4.fill_between(avg_time_data, latent_infected, dead_latent_infected, color=[c/255 for c in self.config.color_dead], label='Dead')
+        self.ax4.fill_between(avg_time_data, 0, avg_latent_data, color=[c / 255 for c in self.config.color_latent],
+                              label='Latent')
+        self.ax4.fill_between(avg_time_data, avg_latent_data, latent_infected,
+                              color=[c / 255 for c in self.config.color_active],
+                              label='Infectious')
+        self.ax4.fill_between(avg_time_data, latent_infected, dead_latent_infected,
+                              color=[c / 255 for c in self.config.color_dead], label='Dead')
 
         if total_population - max(dead_latent_infected, default=0) > 0:
             self.ax4.fill_between(avg_time_data, dead_latent_infected, [total_population] * len(dead_latent_infected),
-                                 color=[c/255 for c in self.config.color_healthy], label='Susceptible')
+                                  color=[c / 255 for c in self.config.color_healthy], label='Susceptible')
 
         if self.ax4.get_legend_handles_labels()[1]:  # Check if there are labels
             self.ax4.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
@@ -267,9 +285,12 @@ class StatisticsWidget(QWidget):
         self.ax5.clear()
         self.set_plot_background()
 
-        self.ax5.plot(avg_time_data, avg_latent_data, label='Latent', color=[c/255 for c in self.config.color_latent], linestyle='-', linewidth=2)
-        self.ax5.plot(avg_time_data, avg_infected_data, label='Active', color=[c/255 for c in self.config.color_active], linestyle='-', linewidth=2)
-        self.ax5.plot(avg_time_data, avg_dead_data, label='Dead', color=[c/255 for c in self.config.color_dead], linestyle='-', linewidth=2)
+        self.ax5.plot(avg_time_data, avg_latent_data, label='Latent', color=[c / 255 for c in self.config.color_latent],
+                      linestyle='-', linewidth=2)
+        self.ax5.plot(avg_time_data, avg_infected_data, label='Active',
+                      color=[c / 255 for c in self.config.color_active], linestyle='-', linewidth=2)
+        self.ax5.plot(avg_time_data, avg_dead_data, label='Dead', color=[c / 255 for c in self.config.color_dead],
+                      linestyle='-', linewidth=2)
 
         self.ax5.set_ylabel('Population')
         if self.ax5.get_legend_handles_labels()[1]:  # Check if there are labels
@@ -282,9 +303,12 @@ class StatisticsWidget(QWidget):
         percentages_infected = [(i / total_population) * 100 if total_population > 0 else 0 for i in avg_infected_data]
         percentages_dead = [(d / total_population) * 100 if total_population > 0 else 0 for d in avg_dead_data]
 
-        self.ax6.plot(avg_time_data, percentages_latent, label='Latent (%)', color=[c/255 for c in self.config.color_latent], linestyle='-', linewidth=2)
-        self.ax6.plot(avg_time_data, percentages_infected, label='Active (%)', color=[c/255 for c in self.config.color_active], linestyle='-', linewidth=2)
-        self.ax6.plot(avg_time_data, percentages_dead, label='Dead (%)', color=[c/255 for c in self.config.color_dead], linestyle='-', linewidth=2)
+        self.ax6.plot(avg_time_data, percentages_latent, label='Latent (%)',
+                      color=[c / 255 for c in self.config.color_latent], linestyle='-', linewidth=2)
+        self.ax6.plot(avg_time_data, percentages_infected, label='Active (%)',
+                      color=[c / 255 for c in self.config.color_active], linestyle='-', linewidth=2)
+        self.ax6.plot(avg_time_data, percentages_dead, label='Dead (%)',
+                      color=[c / 255 for c in self.config.color_dead], linestyle='-', linewidth=2)
 
         self.ax6.set_ylabel('Percentage (%)')
         self.ax6.set_xlabel('Time')

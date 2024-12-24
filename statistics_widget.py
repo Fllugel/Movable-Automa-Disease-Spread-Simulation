@@ -53,10 +53,11 @@ class StatisticsWidget(QWidget):
             ax.set_title(ax.get_label(), fontsize=12)
             ax.set_xlabel('Time', fontsize=10)
             ax.set_ylabel('Population', fontsize=10)
-            legend = ax.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
-            if legend:
-                for text in legend.get_texts():
-                    text.set_color('white')
+            if ax.get_legend_handles_labels()[1]:  # Check if there are labels
+                legend = ax.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+                if legend:
+                    for text in legend.get_texts():
+                        text.set_color('white')
 
     def update_plot(self):
         # Update the first plot (the classic stacked plot)
@@ -82,7 +83,8 @@ class StatisticsWidget(QWidget):
             self.ax1.fill_between(self.time_data, dead_latent_infected, [total_population] * len(dead_latent_infected),
                                  color=[c/255 for c in self.config.color_healthy], label='Susceptible')
 
-        self.ax1.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+        if self.ax1.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax1.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         # Update the second plot (three independent lines: latent, active, and dead)
         self.ax2.clear()
@@ -99,7 +101,8 @@ class StatisticsWidget(QWidget):
 
         self.ax2.set_ylabel('Population')
         # self.ax2.set_xlabel('Time')
-        self.ax2.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+        if self.ax2.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax2.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         # Update the third plot (percentage of latent, infected, and dead)
         self.ax3.clear()
@@ -115,7 +118,8 @@ class StatisticsWidget(QWidget):
 
         self.ax3.set_ylabel('Percentage (%)')
         self.ax3.set_xlabel('Time')
-        self.ax3.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+        if self.ax3.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax3.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         self.canvas.draw()
 
@@ -224,7 +228,7 @@ class StatisticsWidget(QWidget):
         avg_dead_data = [0] * len(avg_time_data)
 
         for data in self.simulations_data:
-            for i in range(len(avg_time_data)):
+            for i in range(min(len(avg_time_data), len(data["healthy_data"]))):
                 avg_healthy_data[i] += data["healthy_data"][i]
                 avg_latent_data[i] += data["latent_data"][i]
                 avg_infected_data[i] += data["infected_data"][i]
@@ -257,7 +261,8 @@ class StatisticsWidget(QWidget):
             self.ax4.fill_between(avg_time_data, dead_latent_infected, [total_population] * len(dead_latent_infected),
                                  color=[c/255 for c in self.config.color_healthy], label='Susceptible')
 
-        self.ax4.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+        if self.ax4.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax4.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         self.ax5.clear()
         self.set_plot_background()
@@ -267,7 +272,8 @@ class StatisticsWidget(QWidget):
         self.ax5.plot(avg_time_data, avg_dead_data, label='Dead', color=[c/255 for c in self.config.color_dead], linestyle='-', linewidth=2)
 
         self.ax5.set_ylabel('Population')
-        self.ax5.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+        if self.ax5.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax5.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         self.ax6.clear()
         self.set_plot_background()
@@ -282,6 +288,7 @@ class StatisticsWidget(QWidget):
 
         self.ax6.set_ylabel('Percentage (%)')
         self.ax6.set_xlabel('Time')
-        self.ax6.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+        if self.ax6.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax6.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         self.canvas.draw()

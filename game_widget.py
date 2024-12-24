@@ -52,7 +52,7 @@ class GameWidget(QWidget):
 
         self.auto_stop_triggered = False
         self.current_iteration = 0
-        self.current_simulation = 0
+        # self.current_simulation = 0
 
     def game_loop(self):
         if self.cell_automaton and not self.is_paused:
@@ -74,9 +74,12 @@ class GameWidget(QWidget):
                 self.simulation_data_saved.emit(self.config.max_days * self.config.iterations_per_day)
                 self.auto_stop_triggered = True
 
-                if self.current_simulation < self.config.num_runs:
+                if (self.current_simulation + 1) < self.config.num_runs:
+                    print(self.current_simulation, self.config.num_runs)
                     self.current_simulation += 1
                     self.start_simulation(self.config)
+
+
 
     def update_statistics(self):
         if self.cell_automaton:

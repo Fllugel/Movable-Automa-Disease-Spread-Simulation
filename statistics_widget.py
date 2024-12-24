@@ -1,16 +1,15 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QInputDialog
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QInputDialog, QScrollArea
 import matplotlib.pyplot as plt
 import pandas as pd
 import os
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-
 
 class StatisticsWidget(QWidget):
     def __init__(self, parent=None, config=None):
         super().__init__(parent)
         self.config = config
         self.figure, (self.ax1, self.ax2, self.ax3, self.ax4, self.ax5, self.ax6) = plt.subplots(6, 1, figsize=(6, 20))
-        self.figure.subplots_adjust(hspace=0.5)
+        self.figure.subplots_adjust(hspace=0.5, top=0.95, bottom=0.05)
         self.canvas = FigureCanvas(self.figure)
         self.canvas.setFixedSize(600, 1400)
         self.canvas.setStyleSheet("background-color:white;")
@@ -31,15 +30,25 @@ class StatisticsWidget(QWidget):
         self.infected_label = QLabel("Infected: 0")
         self.dead_label = QLabel("Dead: 0")
 
-        label_layout = QHBoxLayout()
+        # Create a widget for the text labels
+        label_widget = QWidget()
+        label_layout = QHBoxLayout(label_widget)
+        label_layout.setContentsMargins(5, 5, 5, 5)  # Adjust margins as needed
+        label_layout.setSpacing(10)  # Adjust spacing as needed
         label_layout.addWidget(self.healthy_label)
         label_layout.addWidget(self.latent_label)
         label_layout.addWidget(self.infected_label)
         label_layout.addWidget(self.dead_label)
 
+        # Create a scroll area for the graphs
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(self.canvas)
+        scroll_area.setWidgetResizable(True)
+
+        # Add the widgets to the main layout
         layout = QVBoxLayout()
-        layout.addLayout(label_layout)
-        layout.addWidget(self.canvas)
+        layout.addWidget(label_widget)
+        layout.addWidget(scroll_area)
         self.setLayout(layout)
 
     def set_plot_background(self):
@@ -222,12 +231,15 @@ class StatisticsWidget(QWidget):
 
         num_simulations = len(self.simulations_data)
 
+        # Determine the new maximum length
+        new_max_days = max(max_days, max(len(data["time_data"]) for data in self.simulations_data))
+
         avg_time_data = self.simulations_data[0]["time_data"]
 
-        avg_healthy_data = [0] * max_days
-        avg_latent_data = [0] * max_days
-        avg_infected_data = [0] * max_days
-        avg_dead_data = [0] * max_days
+        avg_healthy_data = [0] * new_max_days
+        avg_latent_data = [0] * new_max_days
+        avg_infected_data = [0] * new_max_days
+        avg_dead_data = [0] * new_max_days
 
         for data in self.simulations_data:
             time_data = data["time_data"]
@@ -236,15 +248,15 @@ class StatisticsWidget(QWidget):
             infected_data = data["infected_data"]
             dead_data = data["dead_data"]
 
-            # Extend data to max_days length
-            if len(time_data) < max_days:
-                time_data.extend([time_data[-1]] * (max_days - len(time_data)))
-                healthy_data.extend([healthy_data[-1]] * (max_days - len(healthy_data)))
-                latent_data.extend([latent_data[-1]] * (max_days - len(latent_data)))
-                infected_data.extend([infected_data[-1]] * (max_days - len(infected_data)))
-                dead_data.extend([dead_data[-1]] * (max_days - len(dead_data)))
+            # Extend data to new_max_days length
+            if len(time_data) < new_max_days:
+                time_data.extend([time_data[-1]] * (new_max_days - len(time_data)))
+                healthy_data.extend([healthy_data[-1]] * (new_max_days - len(healthy_data)))
+                latent_data.extend([latent_data[-1]] * (new_max_days - len(latent_data)))
+                infected_data.extend([infected_data[-1]] * (new_max_days - len(infected_data)))
+                dead_data.extend([dead_data[-1]] * (new_max_days - len(dead_data)))
 
-            for i in range(max_days):
+            for i in range(new_max_days):
                 avg_healthy_data[i] += healthy_data[i]
                 avg_latent_data[i] += latent_data[i]
                 avg_infected_data[i] += infected_data[i]
@@ -262,7 +274,7 @@ class StatisticsWidget(QWidget):
                                 zip(avg_healthy_data, avg_latent_data, avg_infected_data, avg_dead_data)),
                                default=0)
         if total_population == 0:
-            total_population = max_days
+            total_population = new_max_days
 
         latent_infected = [l + i for l, i in zip(avg_latent_data, avg_infected_data)]
         dead_latent_infected = [l + i + d for l, i, d in zip(avg_latent_data, avg_infected_data, avg_dead_data)]

@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         infection_params_layout.addRow(QLabel("Latent to Active Probability"), self.latent_to_active_probability_input)
         infection_params_layout.addRow(QLabel("Infection Probability (Latent)"),
                                        self.infection_probability_latent_input)
-        infection_params_layout.addRow(QLabel("Infection Probability (Active)"),
+        infection_params_layout.addRow(QLabel("Infection Probability (Healthy)"),
                                        self.infection_probability_active_input)
         infection_params_layout.addRow(QLabel("Death Probability"), self.death_probability_input)
         infection_params_group.setLayout(infection_params_layout)

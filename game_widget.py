@@ -2,8 +2,6 @@ import pygame
 from PyQt5.QtWidgets import QWidget
 from PyQt5.QtCore import QTimer, pyqtSignal
 from PyQt5.QtGui import QPainter, QImage
-from streamlit.web.cli import config
-
 from cell_automaton import CellAutomaton
 from config import Config
 
@@ -30,7 +28,7 @@ class GameWidget(QWidget):
         self.offset_x = 0
         self.offset_y = 0
         self.polygon_points = []
-        self.current_simulation = 1
+        self.current_simulation = 0
 
     def _initialize_pygame(self):
         pygame.init()
@@ -41,7 +39,6 @@ class GameWidget(QWidget):
 
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
-
 
     def start_simulation(self, config: Config):
         self.cell_automaton = CellAutomaton(config)
@@ -54,7 +51,6 @@ class GameWidget(QWidget):
 
         self.auto_stop_triggered = False
         self.current_iteration = 0
-        self.current_simulation = 0
 
     def game_loop(self):
         if self.cell_automaton and not self.is_paused:
@@ -76,9 +72,7 @@ class GameWidget(QWidget):
                 self.simulation_data_saved.emit(self.config.max_days * self.config.iterations_per_day)
                 self.auto_stop_triggered = True
 
-                if self.current_simulation < self.config.num_runs:
-                    print(self.config.num_runs)
-                    print(self.current_simulation)
+                if (self.current_simulation + 1) < self.config.num_runs:
                     self.current_simulation += 1
                     self.start_simulation(self.config)
 

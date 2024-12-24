@@ -11,7 +11,7 @@ class MainWindow(QMainWindow):
         super().__init__()
         self.setWindowTitle("Cellular Automaton - Infection Simulation")
         self.setGeometry(100, 100, 1200, 800)
-        self.setMinimumSize(800, 600)
+        self.setMinimumSize(1200, 800)
 
         self.config = Config()
         self.polygon = Polygon()
@@ -22,7 +22,7 @@ class MainWindow(QMainWindow):
 
         scroll_area = QScrollArea()
         param_panel = QWidget()
-        param_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        param_panel.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Preferred)
         param_layout = QVBoxLayout()
 
         # Group 1: Simulation Parameters
@@ -47,13 +47,13 @@ class MainWindow(QMainWindow):
         infection_params_layout = QFormLayout()
         self.latent_to_active_probability_input = QLineEdit(str(self.config.latent_to_active_prob))
         self.infection_probability_latent_input = QLineEdit(str(self.config.infection_prob_latent))
-        self.infection_probability_active_input = QLineEdit(str(self.config.infection_prob_healthy))
+        self.infection_probability_healthy_input = QLineEdit(str(self.config.infection_prob_healthy))
         self.death_probability_input = QLineEdit(str(self.config.death_probability))
         infection_params_layout.addRow(QLabel("Latent to Active Probability"), self.latent_to_active_probability_input)
         infection_params_layout.addRow(QLabel("Infection Probability (Latent)"),
                                        self.infection_probability_latent_input)
         infection_params_layout.addRow(QLabel("Infection Probability (Healthy)"),
-                                       self.infection_probability_active_input)
+                                       self.infection_probability_healthy_input)
         infection_params_layout.addRow(QLabel("Death Probability"), self.death_probability_input)
         infection_params_group.setLayout(infection_params_layout)
         param_layout.addWidget(infection_params_group)
@@ -140,14 +140,18 @@ class MainWindow(QMainWindow):
         scroll_area.setWidget(param_panel)
 
         layout.addWidget(scroll_area, 0, 0, 2, 1)
+        layout.setColumnStretch(0, 1)
+        layout.setColumnStretch(1, 0)
 
         self.game_widget = GameWidget(self)
+        self.game_widget.setFixedWidth(600)
         layout.addWidget(self.game_widget, 0, 1)
 
         self.polygon_type_combo.setCurrentText("Open Area")
         self.create_polygon()
 
         self.plot_widget = StatisticsWidget(self, config=self.config)
+        self.plot_widget.setFixedWidth(600)
         scroll_area_plot = QScrollArea()
         scroll_area_plot.setWidgetResizable(True)
         scroll_area_plot.setWidget(self.plot_widget)
@@ -189,13 +193,14 @@ class MainWindow(QMainWindow):
             self.config.infection_radius = int(self.infection_radius_input.text())
             self.config.latent_to_active_prob = float(self.latent_to_active_probability_input.text())
             self.config.infection_prob_latent = float(self.infection_probability_latent_input.text())
-            self.config.infection_prob_active = float(self.infection_probability_active_input.text())
+            self.config.infection_prob_healthy = float(self.infection_probability_healthy_input.text())
             self.config.cell_speed = float(self.cell_speed_input.text())
             self.config.death_probability = float(self.death_probability_input.text())
             self.config.cell_size = float(self.cell_size_input.text())
             self.config.num_runs = int(self.num_runs_input.text())
             self.config.max_days = int(self.max_days_input.text())
 
+            self.game_widget.current_simulation = 0
             self.game_widget.start_simulation(self.config)
             self.plot_widget.reset_data()
             self.plot_widget.simulations_data = []

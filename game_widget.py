@@ -40,7 +40,6 @@ class GameWidget(QWidget):
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
 
-
     def start_simulation(self, config: Config):
         self.cell_automaton = CellAutomaton(config)
         self.cell_automaton.offset_x = self.offset_x
@@ -52,7 +51,6 @@ class GameWidget(QWidget):
 
         self.auto_stop_triggered = False
         self.current_iteration = 0
-        # self.current_simulation = 0
 
     def game_loop(self):
         if self.cell_automaton and not self.is_paused:
@@ -75,11 +73,8 @@ class GameWidget(QWidget):
                 self.auto_stop_triggered = True
 
                 if (self.current_simulation + 1) < self.config.num_runs:
-                    print(self.current_simulation, self.config.num_runs)
                     self.current_simulation += 1
                     self.start_simulation(self.config)
-
-
 
     def update_statistics(self):
         if self.cell_automaton:

@@ -8,7 +8,7 @@ from config import Config
 
 class GameWidget(QWidget):
     statistics_updated = pyqtSignal(int, int, int, int, int)
-    simulation_data_saved = pyqtSignal(int)
+    simulation_data_saved = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -69,7 +69,7 @@ class GameWidget(QWidget):
             if self.current_day >= self.config.max_days or (
                     self.auto_stop_enabled and self.cell_automaton.no_infected()):
                 self.toggle_pause()
-                self.simulation_data_saved.emit(self.config.max_days * self.config.iterations_per_day)
+                self.simulation_data_saved.emit()
                 self.auto_stop_triggered = True
 
                 if (self.current_simulation + 1) < self.config.num_runs:

@@ -176,7 +176,7 @@ class MainWindow(QMainWindow):
 
     def start_simulation(self):
         try:
-            self.create_polygon()  # Ensure polygon is created/updated on start/restart
+            self.create_polygon()
             if not self.polygon.current_polygon:
                 raise ValueError("Polygon not selected. Please select a polygon for the simulation.")
 

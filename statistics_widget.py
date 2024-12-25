@@ -161,56 +161,6 @@ class StatisticsWidget(QWidget):
         self.infected_label.setText(f"Infected: {self.infected_data[-1] if self.infected_data else 0}")
         self.dead_label.setText(f"Dead: {self.dead_data[-1] if self.dead_data else 0}")
 
-    def save_data_and_plot(self):
-        if not self.time_data:
-            print("No data to save.")
-            return
-
-        unique_days = set()
-        filtered_data = {"Day": [], "Healthy": [], "Latent": [], "Infected": [], "Dead": []}
-
-        for i, day in enumerate(self.time_data):
-            if day not in unique_days:
-                unique_days.add(day)
-                filtered_data["Day"].append(self.time_data[i])
-                filtered_data["Healthy"].append(self.healthy_data[i])
-                filtered_data["Latent"].append(self.latent_data[i])
-                filtered_data["Infected"].append(self.infected_data[i])
-                filtered_data["Dead"].append(self.dead_data[i])
-
-        options = QFileDialog.Options()
-        folder = QFileDialog.getExistingDirectory(self, "Select folder to save", options=options)
-        if not folder:
-            return
-
-        folder_name, ok = QInputDialog.getText(self, "Enter folder name", "Folder name:")
-        if not ok or not folder_name:
-            print("Folder name was not entered.")
-            return
-
-        full_folder_path = os.path.join(folder, folder_name)
-        try:
-            os.makedirs(full_folder_path, exist_ok=True)
-        except Exception as e:
-            print(f"Error creating folder: {e}")
-            return
-
-        df = pd.DataFrame(filtered_data)
-        excel_path = os.path.join(full_folder_path, f"{folder_name}_data.xlsx")
-        try:
-            df.to_excel(excel_path, index=False)
-            print(f"Data successfully saved to file {excel_path}.")
-        except Exception as e:
-            print(f"Error saving data: {e}")
-
-        plot_path_ax1 = os.path.join(full_folder_path, f"{folder_name}_plot.png")
-        try:
-            fig1 = self.ax1.figure
-            fig1.savefig(plot_path_ax1, bbox_inches='tight', dpi=300)
-            print(f"Plots successfully saved to {plot_path_ax1}.")
-        except Exception as e:
-            print(f"Error saving plots: {e}")
-
     def add_data(self, day, healthy, latent, infected, dead):
         self.time_data.append(day)
         self.healthy_data.append(healthy)
@@ -341,4 +291,123 @@ class StatisticsWidget(QWidget):
             self.ax6.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
 
         self.canvas.draw()
+
+    def save_current_simulation_data_and_plot(self):
+        if not self.time_data:
+            return
+
+        unique_days = set()
+        filtered_data = {"Day": [], "Healthy": [], "Latent": [], "Infected": [], "Dead": []}
+
+        for i, day in enumerate(self.time_data):
+            if day not in unique_days:
+                unique_days.add(day)
+                filtered_data["Day"].append(self.time_data[i])
+                filtered_data["Healthy"].append(self.healthy_data[i])
+                filtered_data["Latent"].append(self.latent_data[i])
+                filtered_data["Infected"].append(self.infected_data[i])
+                filtered_data["Dead"].append(self.dead_data[i])
+
+        project_folder = os.path.dirname(os.path.abspath(__file__))
+        save_folder = os.path.join(project_folder, "saved_plots")
+
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder, exist_ok=True)
+
+        file_name, ok = QInputDialog.getText(self, "Enter file name", "File name:")
+        if not ok or not file_name:
+            return
+
+        excel_path = os.path.join(save_folder, f"{file_name}_data.xlsx")
+        plot_path_ax1 = os.path.join(save_folder, f"{file_name}_plot.png")
+
+        df = pd.DataFrame(filtered_data)
+        try:
+            df.to_excel(excel_path, index=False)
+        except Exception as e:
+            return
+
+        try:
+            fig1 = self.ax1.figure
+            fig1.savefig(plot_path_ax1, bbox_inches='tight', dpi=300)
+        except Exception as e:
+            return
+
+    def save_average_data_and_plot(self):
+        if not self.simulations_data:
+            return
+
+        num_simulations = len(self.simulations_data)
+
+        if not hasattr(self, 'current_max_days'):
+            self.current_max_days = max(len(data['time_data']) for data in self.simulations_data)
+        else:
+            self.current_max_days = max(self.current_max_days,
+                                        max(len(data['time_data']) for data in self.simulations_data))
+
+        new_max_days = self.current_max_days
+
+        avg_time_data = self.simulations_data[0]["time_data"]
+
+        avg_healthy_data = [0] * new_max_days
+        avg_latent_data = [0] * new_max_days
+        avg_infected_data = [0] * new_max_days
+        avg_dead_data = [0] * new_max_days
+
+        for data in self.simulations_data:
+            time_data = data["time_data"]
+            healthy_data = data["healthy_data"]
+            latent_data = data["latent_data"]
+            infected_data = data["infected_data"]
+            dead_data = data["dead_data"]
+
+            if len(time_data) < new_max_days:
+                time_data.extend([time_data[-1]] * (new_max_days - len(time_data)))
+                healthy_data.extend([healthy_data[-1]] * (new_max_days - len(healthy_data)))
+                latent_data.extend([latent_data[-1]] * (new_max_days - len(latent_data)))
+                infected_data.extend([infected_data[-1]] * (new_max_days - len(infected_data)))
+                dead_data.extend([dead_data[-1]] * (new_max_days - len(dead_data)))
+
+            for i in range(new_max_days):
+                avg_healthy_data[i] += healthy_data[i]
+                avg_latent_data[i] += latent_data[i]
+                avg_infected_data[i] += infected_data[i]
+                avg_dead_data[i] += dead_data[i]
+
+        avg_healthy_data = [x / num_simulations for x in avg_healthy_data]
+        avg_latent_data = [x / num_simulations for x in avg_latent_data]
+        avg_infected_data = [x / num_simulations for x in avg_infected_data]
+        avg_dead_data = [x / num_simulations for x in avg_dead_data]
+
+        project_folder = os.path.dirname(os.path.abspath(__file__))
+        save_folder = os.path.join(project_folder, "saved_plots")
+
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder, exist_ok=True)
+
+        file_name, ok = QInputDialog.getText(self, "Enter file name", "File name:")
+        if not ok or not file_name:
+            return
+
+        excel_path = os.path.join(save_folder, f"{file_name}_average_data.xlsx")
+        plot_path_ax4 = os.path.join(save_folder, f"{file_name}_average_plot.png")
+
+        avg_data = {
+            "Day": avg_time_data,
+            "Healthy": avg_healthy_data,
+            "Latent": avg_latent_data,
+            "Infected": avg_infected_data,
+            "Dead": avg_dead_data
+        }
+        df = pd.DataFrame(avg_data)
+        try:
+            df.to_excel(excel_path, index=False)
+        except Exception as e:
+            return
+
+        try:
+            fig4 = self.ax4.figure
+            fig4.savefig(plot_path_ax4, bbox_inches='tight', dpi=300)
+        except Exception as e:
+            return
 

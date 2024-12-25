@@ -126,10 +126,15 @@ class MainWindow(QMainWindow):
         pause_button.clicked.connect(self.pause_simulation)
         controls_layout.addWidget(pause_button)
 
-        save_button = QPushButton("Save Data and Plot")
-        save_button.setFixedHeight(button_height)
-        save_button.clicked.connect(self.save_data_and_plot)
-        controls_layout.addWidget(save_button)
+        save_current_button = QPushButton("Save Current Data and Plot")
+        save_current_button.setFixedHeight(button_height)
+        save_current_button.clicked.connect(self.save_current_simulation_data_and_plot)
+        controls_layout.addWidget(save_current_button)
+
+        save_average_button = QPushButton("Save Average Data and Plot")
+        save_average_button.setFixedHeight(button_height)
+        save_average_button.clicked.connect(self.save_average_data_and_plot)
+        controls_layout.addWidget(save_average_button)
 
         controls_layout.addSpacerItem(QSpacerItem(20, 40, QSizePolicy.Minimum, QSizePolicy.Expanding))
         controls_group.setLayout(controls_layout)
@@ -213,8 +218,11 @@ class MainWindow(QMainWindow):
     def toggle_auto_stop(self):
         self.game_widget.toggle_auto_stop()
 
-    def save_data_and_plot(self):
-        self.plot_widget.save_data_and_plot()
+    def save_current_simulation_data_and_plot(self):
+        self.plot_widget.save_current_simulation_data_and_plot()
+
+    def save_average_data_and_plot(self):
+        self.plot_widget.save_average_data_and_plot()
 
     def toggle_animation_visibility(self):
         self.game_widget.setVisible(not self.game_widget.isVisible())

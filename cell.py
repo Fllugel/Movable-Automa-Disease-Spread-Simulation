@@ -52,9 +52,9 @@ class Cell:
 
     def set_state(self, new_state):
         valid_transitions = {
-            CellState.HEALTHY: [CellState.ACTIVE, CellState.LATENT],
-            CellState.ACTIVE: [CellState.LATENT, CellState.DEAD],
-            CellState.LATENT: [CellState.ACTIVE],
+            CellState.HEALTHY: [CellState.ACTIVE, CellState.LATENT, CellState.HEALTHY],
+            CellState.ACTIVE: [CellState.LATENT, CellState.DEAD,CellState.ACTIVE],
+            CellState.LATENT: [CellState.ACTIVE, CellState.LATENT],
             CellState.DEAD: [],
         }
         if new_state not in valid_transitions[self._state]:
@@ -136,9 +136,13 @@ class Cell:
             if self.state == CellState.HEALTHY:
                 if random.random() < infection_prob_healthy:
                     self.set_state(CellState.ACTIVE)
+                else:
+                    self.set_state(CellState.LATENT)
             elif self.state == CellState.LATENT:
                 if random.random() < infection_prob_latent:
                     self.set_state(CellState.ACTIVE)
+                else:
+                    self.set_state(CellState.LATENT)
 
     def show_radius(self):
         self._infection_alpha = 255
@@ -192,6 +196,5 @@ class Cell:
 
     def calculate_infection_probability(self):
         day_of_infection = self.current_day - self._infection_start_day
-        print(self, self.state, self._infection_start_day, self.prob_contagiousness(day_of_infection))
         return self.prob_contagiousness(day_of_infection)
 

@@ -23,7 +23,7 @@ class CellAutomaton:
         self.daily_statistics = {"infected": 0, "dead": 0}
         self._initialize_colors()
         self.current_day = 0
-        self.show_radius = False
+        self.show_radius = config.show_radius
 
     def _initialize_cells(self):
         cells = []

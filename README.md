@@ -4,7 +4,12 @@ This project is a simulation of a movable cellular automaton designed to predict
 
 ## Features
 
-- Cells move randomly in a 2D space.
+- Highly customizable simulation parameters, grouped into:
+    - Basic simulation parameters: Adjust the total number of cells, cycles per day, and more.
+    - Infection parameters: Configure the infection probability, death probability.
+    - Cell parameters: Define movement speed, cell infection radius.
+    - Multiple runs: Ability to run the simulation multiple times for representative results.
+- Cells move randomly in one of three distinct 2D spaces: Office, Open Area, or Trench.
 - Infected cells can infect other cells upon collision.
 - Cells bounce off the walls and each other.
 
@@ -24,3 +29,14 @@ Make sure you have Python installed on your system. This project is built using 
    ```bash
    pip install -r requirements.txt
 
+## Usage
+
+Run the main.py file to start the simulation:
+
+   ```bash
+   python main.py
+   ```
+
+After running the script, an interface window will open, where you can choose the 2D space for the simulation: Office, Open Area, or Trench. 
+
+Once you select a space, you can start the simulation, showing cells interacting dynamically in the chosen environment. Additionally, you can save the simulation's acquired data to your device for analysis.

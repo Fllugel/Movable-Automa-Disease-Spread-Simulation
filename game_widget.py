@@ -8,6 +8,7 @@ from config import Config
 
 class GameWidget(QWidget):
     statistics_updated = pyqtSignal(int, int, int, int, int)
+    simulation_data_saved = pyqtSignal()
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -27,6 +28,7 @@ class GameWidget(QWidget):
         self.offset_x = 0
         self.offset_y = 0
         self.polygon_points = []
+        self.current_simulation = 0
 
     def _initialize_pygame(self):
         pygame.init()
@@ -37,10 +39,6 @@ class GameWidget(QWidget):
 
     def toggle_auto_stop(self):
         self.auto_stop_enabled = not self.auto_stop_enabled
-
-    def set_radius_visible(self, show_radius):
-        if self.cell_automaton:
-            self.cell_automaton.show_radius = show_radius
 
     def start_simulation(self, config: Config):
         self.cell_automaton = CellAutomaton(config)
@@ -58,7 +56,6 @@ class GameWidget(QWidget):
         if self.cell_automaton and not self.is_paused:
             self.current_iteration += 1
 
-            # Update the current day based on iterations_per_day
             if self.current_iteration % self.config.iterations_per_day == 0:
                 self.current_day += 1
 
@@ -69,10 +66,15 @@ class GameWidget(QWidget):
 
             self.repaint()
 
-            if self.auto_stop_enabled and not self.auto_stop_triggered:
-                if self.cell_automaton.no_infected():
-                    self.toggle_pause()
-                    self.auto_stop_triggered = True
+            if self.current_day >= self.config.max_days or (
+                    self.auto_stop_enabled and self.cell_automaton.no_infected()):
+                self.toggle_pause()
+                self.simulation_data_saved.emit()
+                self.auto_stop_triggered = True
+
+                if (self.current_simulation + 1) < self.config.num_runs:
+                    self.current_simulation += 1
+                    self.start_simulation(self.config)
 
     def update_statistics(self):
         if self.cell_automaton:

@@ -1,18 +1,24 @@
-from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QScrollArea, QLabel
+from PyQt5.QtWidgets import QWidget, QVBoxLayout, QHBoxLayout, QLabel, QFileDialog, QInputDialog, QScrollArea
 import matplotlib.pyplot as plt
+import pandas as pd
+import os
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+
 
 class StatisticsWidget(QWidget):
     def __init__(self, parent=None, config=None):
         super().__init__(parent)
         self.config = config
-        self.figure, self.ax = plt.subplots()
+        self.figure, (self.ax1, self.ax2, self.ax3, self.ax4, self.ax5, self.ax6) = plt.subplots(6, 1, figsize=(6, 20))
+        self.figure.subplots_adjust(hspace=0.5, top=0.95, bottom=0.05)
         self.canvas = FigureCanvas(self.figure)
-        self.canvas.setFixedSize(600, 350)
+        self.canvas.setFixedSize(600, 1400)
         self.canvas.setStyleSheet("background-color:white;")
         self.canvas.setContentsMargins(0, 0, 0, 0)
         self.figure.patch.set_facecolor('none')
         self.set_plot_background()
+
+        self.simulations_data = []
 
         self.time_data = []
         self.healthy_data = []
@@ -25,27 +31,47 @@ class StatisticsWidget(QWidget):
         self.infected_label = QLabel("Infected: 0")
         self.dead_label = QLabel("Dead: 0")
 
-        label_layout = QHBoxLayout()
+        # Create a widget for the text labels
+        label_widget = QWidget()
+        label_layout = QHBoxLayout(label_widget)
+        label_layout.setContentsMargins(5, 5, 5, 5)  # Adjust margins as needed
+        label_layout.setSpacing(10)  # Adjust spacing as needed
         label_layout.addWidget(self.healthy_label)
         label_layout.addWidget(self.latent_label)
         label_layout.addWidget(self.infected_label)
         label_layout.addWidget(self.dead_label)
 
+        # Create a scroll area for the graphs
+        scroll_area = QScrollArea()
+        scroll_area.setWidget(self.canvas)
+        scroll_area.setWidgetResizable(True)
+
+        # Add the widgets to the main layout
         layout = QVBoxLayout()
-        layout.addLayout(label_layout)
-        layout.addWidget(self.canvas)
+        layout.addWidget(label_widget)
+        layout.addWidget(scroll_area)
         self.setLayout(layout)
 
     def set_plot_background(self):
-        self.ax.set_facecolor('white')
-        for spine in self.ax.spines.values():
-            spine.set_color('black')
-        self.ax.tick_params(axis='both', colors='black')
-        self.ax.xaxis.label.set_color('black')
-        self.ax.yaxis.label.set_color('black')
+        for ax in [self.ax1, self.ax2, self.ax3, self.ax4, self.ax5, self.ax6]:
+            ax.set_facecolor('white')
+            for spine in ax.spines.values():
+                spine.set_color('black')
+            ax.tick_params(axis='both', colors='black')
+            ax.xaxis.label.set_color('black')
+            ax.yaxis.label.set_color('black')
+            ax.set_title(ax.get_label(), fontsize=12)
+            ax.set_xlabel('Time', fontsize=10)
+            ax.set_ylabel('Population', fontsize=10)
+            if ax.get_legend_handles_labels()[1]:  # Check if there are labels
+                legend = ax.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+                if legend:
+                    for text in legend.get_texts():
+                        text.set_color('white')
 
     def update_plot(self):
-        self.ax.clear()
+        # Update the first plot (the classic stacked plot)
+        self.ax1.clear()
         self.set_plot_background()
 
         total_population = max((h + l + i + d for h, l, i, d in
@@ -57,31 +83,83 @@ class StatisticsWidget(QWidget):
         latent_infected = [l + i for l, i in zip(self.latent_data, self.infected_data)]
         dead_latent_infected = [l + i + d for l, i, d in zip(self.latent_data, self.infected_data, self.dead_data)]
 
-        self.ax.fill_between(self.time_data, 0, self.latent_data, color=[c/255 for c in self.config.color_latent],
-                             label='Latent')
-        self.ax.fill_between(self.time_data, self.latent_data, latent_infected, color=[c/255 for c in self.config.color_active],
-                             label='Infectious')
-        self.ax.fill_between(self.time_data, latent_infected, dead_latent_infected, color=[c/255 for c in self.config.color_dead], label='Dead')
+        self.ax1.fill_between(self.time_data, 0, self.latent_data, color=[c / 255 for c in self.config.color_latent],
+                              label='Latent')
+        self.ax1.fill_between(self.time_data, self.latent_data, latent_infected,
+                              color=[c / 255 for c in self.config.color_active],
+                              label='Infectious')
+        self.ax1.fill_between(self.time_data, latent_infected, dead_latent_infected,
+                              color=[c / 255 for c in self.config.color_dead], label='Dead')
 
         if total_population - max(dead_latent_infected, default=0) > 0:
-            self.ax.fill_between(self.time_data, dead_latent_infected, [total_population] * len(dead_latent_infected),
-                                 color=[c/255 for c in self.config.color_healthy], label='Susceptible')
+            self.ax1.fill_between(self.time_data, dead_latent_infected, [total_population] * len(dead_latent_infected),
+                                  color=[c / 255 for c in self.config.color_healthy], label='Susceptible')
 
-        legend = self.ax.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
-        for text in legend.get_texts():
-            text.set_color((1, 1, 1))
+        if self.ax1.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax1.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
+        # Update the second plot (three independent lines: latent, active, and dead)
+        self.ax2.clear()
+        self.set_plot_background()
+
+        # Plot the latent population (blue color)
+        self.ax2.plot(self.time_data, self.latent_data, label='Latent',
+                      color=[c / 255 for c in self.config.color_latent], linestyle='-', linewidth=2)
+
+        # Plot the active population (red color, only infected)
+        self.ax2.plot(self.time_data, self.infected_data, label='Active',
+                      color=[c / 255 for c in self.config.color_active], linestyle='-', linewidth=2)
+
+        # Plot the dead population (black color)
+        self.ax2.plot(self.time_data, self.dead_data, label='Dead', color=[c / 255 for c in self.config.color_dead],
+                      linestyle='-', linewidth=2)
+
+        self.ax2.set_ylabel('Population')
+        # self.ax2.set_xlabel('Time')
+        if self.ax2.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax2.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
+        # Update the third plot (percentage of latent, infected, and dead)
+        self.ax3.clear()
+        self.set_plot_background()
+
+        percentages_latent = [(l / total_population) * 100 if total_population > 0 else 0 for l in self.latent_data]
+        percentages_infected = [(i / total_population) * 100 if total_population > 0 else 0 for i in self.infected_data]
+        percentages_dead = [(d / total_population) * 100 if total_population > 0 else 0 for d in self.dead_data]
+
+        self.ax3.plot(self.time_data, percentages_latent, label='Latent (%)',
+                      color=[c / 255 for c in self.config.color_latent], linestyle='-', linewidth=2)
+        self.ax3.plot(self.time_data, percentages_infected, label='Active (%)',
+                      color=[c / 255 for c in self.config.color_active], linestyle='-', linewidth=2)
+        self.ax3.plot(self.time_data, percentages_dead, label='Dead (%)',
+                      color=[c / 255 for c in self.config.color_dead], linestyle='-', linewidth=2)
+
+        self.ax3.set_ylabel('Percentage (%)')
+        self.ax3.set_xlabel('Time')
+        if self.ax3.get_legend_handles_labels()[1]:  # Check if there are labels
+            self.ax3.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
         self.canvas.draw()
 
         self.update_labels()
+
+    def save_current_simulation_data(self):
+        simulation_data = {
+            "time_data": self.time_data.copy(),
+            "healthy_data": self.healthy_data.copy(),
+            "latent_data": self.latent_data.copy(),
+            "infected_data": self.infected_data.copy(),
+            "dead_data": self.dead_data.copy()
+        }
+        self.simulations_data.append(simulation_data)
+        self.reset_data()
+        self.update_average_plots()
 
     def update_labels(self):
         self.healthy_label.setText(f"Healthy: {self.healthy_data[-1] if self.healthy_data else 0}")
         self.latent_label.setText(f"Latent: {self.latent_data[-1] if self.latent_data else 0}")
         self.infected_label.setText(f"Infected: {self.infected_data[-1] if self.infected_data else 0}")
         self.dead_label.setText(f"Dead: {self.dead_data[-1] if self.dead_data else 0}")
-
-    def save_plot(self):
-        self.figure.savefig('simulation_plot.png', bbox_inches='tight', dpi=300)
 
     def add_data(self, day, healthy, latent, infected, dead):
         self.time_data.append(day)
@@ -97,4 +175,239 @@ class StatisticsWidget(QWidget):
         self.latent_data.clear()
         self.infected_data.clear()
         self.dead_data.clear()
+
+        self.ax4.clear()
+        self.ax5.clear()
+        self.ax6.clear()
+        self.set_plot_background()
+
         self.update_plot()
+        self.canvas.draw()
+
+    def update_average_plots(self):
+        if not self.simulations_data:
+            return
+
+        num_simulations = len(self.simulations_data)
+
+        if not hasattr(self, 'current_max_days'):
+            self.current_max_days = max(len(data['time_data']) for data in self.simulations_data)
+        else:
+            self.current_max_days = max(self.current_max_days,
+                                        max(len(data['time_data']) for data in self.simulations_data))
+
+        new_max_days = self.current_max_days
+
+        avg_time_data = self.simulations_data[0]["time_data"]
+
+        avg_healthy_data = [0] * new_max_days
+        avg_latent_data = [0] * new_max_days
+        avg_infected_data = [0] * new_max_days
+        avg_dead_data = [0] * new_max_days
+
+        for data in self.simulations_data:
+            time_data = data["time_data"]
+            healthy_data = data["healthy_data"]
+            latent_data = data["latent_data"]
+            infected_data = data["infected_data"]
+            dead_data = data["dead_data"]
+
+            if len(time_data) < new_max_days:
+                time_data.extend([time_data[-1]] * (new_max_days - len(time_data)))
+                healthy_data.extend([healthy_data[-1]] * (new_max_days - len(healthy_data)))
+                latent_data.extend([latent_data[-1]] * (new_max_days - len(latent_data)))
+                infected_data.extend([infected_data[-1]] * (new_max_days - len(infected_data)))
+                dead_data.extend([dead_data[-1]] * (new_max_days - len(dead_data)))
+
+            for i in range(new_max_days):
+                avg_healthy_data[i] += healthy_data[i]
+                avg_latent_data[i] += latent_data[i]
+                avg_infected_data[i] += infected_data[i]
+                avg_dead_data[i] += dead_data[i]
+
+        avg_healthy_data = [x / num_simulations for x in avg_healthy_data]
+        avg_latent_data = [x / num_simulations for x in avg_latent_data]
+        avg_infected_data = [x / num_simulations for x in avg_infected_data]
+        avg_dead_data = [x / num_simulations for x in avg_dead_data]
+
+        self.ax4.clear()
+        self.set_plot_background()
+
+        total_population = max((h + l + i + d for h, l, i, d in
+                                zip(avg_healthy_data, avg_latent_data, avg_infected_data, avg_dead_data)),
+                               default=0)
+        if total_population == 0:
+            total_population = new_max_days
+
+        latent_infected = [l + i for l, i in zip(avg_latent_data, avg_infected_data)]
+        dead_latent_infected = [l + i + d for l, i, d in zip(avg_latent_data, avg_infected_data, avg_dead_data)]
+
+        self.ax4.fill_between(avg_time_data, 0, avg_latent_data, color=[c / 255 for c in self.config.color_latent],
+                              label='Latent')
+        self.ax4.fill_between(avg_time_data, avg_latent_data, latent_infected,
+                              color=[c / 255 for c in self.config.color_active],
+                              label='Infectious')
+        self.ax4.fill_between(avg_time_data, latent_infected, dead_latent_infected,
+                              color=[c / 255 for c in self.config.color_dead], label='Dead')
+
+        if total_population - max(dead_latent_infected, default=0) > 0:
+            self.ax4.fill_between(avg_time_data, dead_latent_infected, [total_population] * len(dead_latent_infected),
+                                  color=[c / 255 for c in self.config.color_healthy], label='Susceptible')
+
+        if self.ax4.get_legend_handles_labels()[1]:
+            self.ax4.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
+        self.ax5.clear()
+        self.set_plot_background()
+
+        self.ax5.plot(avg_time_data, avg_latent_data, label='Latent', color=[c / 255 for c in self.config.color_latent],
+                      linestyle='-', linewidth=2)
+        self.ax5.plot(avg_time_data, avg_infected_data, label='Active',
+                      color=[c / 255 for c in self.config.color_active], linestyle='-', linewidth=2)
+        self.ax5.plot(avg_time_data, avg_dead_data, label='Dead', color=[c / 255 for c in self.config.color_dead],
+                      linestyle='-', linewidth=2)
+
+        self.ax5.set_ylabel('Population')
+        if self.ax5.get_legend_handles_labels()[1]:
+            self.ax5.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
+        self.ax6.clear()
+        self.set_plot_background()
+
+        percentages_latent = [(l / total_population) * 100 if total_population > 0 else 0 for l in avg_latent_data]
+        percentages_infected = [(i / total_population) * 100 if total_population > 0 else 0 for i in avg_infected_data]
+        percentages_dead = [(d / total_population) * 100 if total_population > 0 else 0 for d in avg_dead_data]
+
+        self.ax6.plot(avg_time_data, percentages_latent, label='Latent (%)',
+                      color=[c / 255 for c in self.config.color_latent], linestyle='-', linewidth=2)
+        self.ax6.plot(avg_time_data, percentages_infected, label='Active (%)',
+                      color=[c / 255 for c in self.config.color_active], linestyle='-', linewidth=2)
+        self.ax6.plot(avg_time_data, percentages_dead, label='Dead (%)',
+                      color=[c / 255 for c in self.config.color_dead], linestyle='-', linewidth=2)
+
+        self.ax6.set_ylabel('Percentage (%)')
+        self.ax6.set_xlabel('Time')
+        if self.ax6.get_legend_handles_labels()[1]:
+            self.ax6.legend(loc='upper left', facecolor=(37 / 255, 61 / 255, 71 / 255), edgecolor=(1, 1, 1))
+
+        self.canvas.draw()
+
+    def save_current_simulation_data_and_plot(self):
+        if not self.time_data:
+            return
+
+        unique_days = set()
+        filtered_data = {"Day": [], "Healthy": [], "Latent": [], "Infected": [], "Dead": []}
+
+        for i, day in enumerate(self.time_data):
+            if day not in unique_days:
+                unique_days.add(day)
+                filtered_data["Day"].append(self.time_data[i])
+                filtered_data["Healthy"].append(self.healthy_data[i])
+                filtered_data["Latent"].append(self.latent_data[i])
+                filtered_data["Infected"].append(self.infected_data[i])
+                filtered_data["Dead"].append(self.dead_data[i])
+
+        project_folder = os.path.dirname(os.path.abspath(__file__))
+        save_folder = os.path.join(project_folder, "saved_plots")
+
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder, exist_ok=True)
+
+        file_name, ok = QInputDialog.getText(self, "Enter file name", "File name:")
+        if not ok or not file_name:
+            return
+
+        excel_path = os.path.join(save_folder, f"{file_name}_data.xlsx")
+        plot_path_ax1 = os.path.join(save_folder, f"{file_name}_plot.png")
+
+        df = pd.DataFrame(filtered_data)
+        try:
+            df.to_excel(excel_path, index=False)
+        except Exception as e:
+            return
+
+        try:
+            fig1 = self.ax1.figure
+            fig1.savefig(plot_path_ax1, bbox_inches='tight', dpi=300)
+        except Exception as e:
+            return
+
+    def save_average_data_and_plot(self):
+        if not self.simulations_data:
+            return
+
+        num_simulations = len(self.simulations_data)
+
+        if not hasattr(self, 'current_max_days'):
+            self.current_max_days = max(len(data['time_data']) for data in self.simulations_data)
+        else:
+            self.current_max_days = max(self.current_max_days,
+                                        max(len(data['time_data']) for data in self.simulations_data))
+
+        new_max_days = self.current_max_days
+
+        avg_time_data = self.simulations_data[0]["time_data"]
+
+        avg_healthy_data = [0] * new_max_days
+        avg_latent_data = [0] * new_max_days
+        avg_infected_data = [0] * new_max_days
+        avg_dead_data = [0] * new_max_days
+
+        for data in self.simulations_data:
+            time_data = data["time_data"]
+            healthy_data = data["healthy_data"]
+            latent_data = data["latent_data"]
+            infected_data = data["infected_data"]
+            dead_data = data["dead_data"]
+
+            if len(time_data) < new_max_days:
+                time_data.extend([time_data[-1]] * (new_max_days - len(time_data)))
+                healthy_data.extend([healthy_data[-1]] * (new_max_days - len(healthy_data)))
+                latent_data.extend([latent_data[-1]] * (new_max_days - len(latent_data)))
+                infected_data.extend([infected_data[-1]] * (new_max_days - len(infected_data)))
+                dead_data.extend([dead_data[-1]] * (new_max_days - len(dead_data)))
+
+            for i in range(new_max_days):
+                avg_healthy_data[i] += healthy_data[i]
+                avg_latent_data[i] += latent_data[i]
+                avg_infected_data[i] += infected_data[i]
+                avg_dead_data[i] += dead_data[i]
+
+        avg_healthy_data = [x / num_simulations for x in avg_healthy_data]
+        avg_latent_data = [x / num_simulations for x in avg_latent_data]
+        avg_infected_data = [x / num_simulations for x in avg_infected_data]
+        avg_dead_data = [x / num_simulations for x in avg_dead_data]
+
+        project_folder = os.path.dirname(os.path.abspath(__file__))
+        save_folder = os.path.join(project_folder, "saved_plots")
+
+        if not os.path.exists(save_folder):
+            os.makedirs(save_folder, exist_ok=True)
+
+        file_name, ok = QInputDialog.getText(self, "Enter file name", "File name:")
+        if not ok or not file_name:
+            return
+
+        excel_path = os.path.join(save_folder, f"{file_name}_average_data.xlsx")
+        plot_path_ax4 = os.path.join(save_folder, f"{file_name}_average_plot.png")
+
+        avg_data = {
+            "Day": avg_time_data,
+            "Healthy": avg_healthy_data,
+            "Latent": avg_latent_data,
+            "Infected": avg_infected_data,
+            "Dead": avg_dead_data
+        }
+        df = pd.DataFrame(avg_data)
+        try:
+            df.to_excel(excel_path, index=False)
+        except Exception as e:
+            return
+
+        try:
+            fig4 = self.ax4.figure
+            fig4.savefig(plot_path_ax4, bbox_inches='tight', dpi=300)
+        except Exception as e:
+            return
+
